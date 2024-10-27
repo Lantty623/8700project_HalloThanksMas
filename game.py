@@ -1,5 +1,5 @@
 import tkinter as tk
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk, ImageEnhance
 from level1 import start_level1
 from level2 import start_level2
 from level3 import start_level3
@@ -33,20 +33,84 @@ def flash_text():
         flash_job_id = root.after(500, flash_text)
 
 # --- Level Selection Screen ---
+# --- Level Selection Screen ---
 def level_selection_screen():
     for widget in root.winfo_children():
         widget.destroy()
     
     selection_screen = tk.Frame(root)
-    selection_screen.pack(fill="both", expand=True)
+    selection_screen.pack(fill="both", expand=True, padx=20, pady=10)
 
-    title_label = tk.Label(selection_screen, text="Choose Your Level", font=("Arial", 24, "bold"))
-    title_label.pack(pady=20)
+    # Define level information
+    level_info = [
+        {
+            "name": "Trick-or-treating",
+            "image_path": "assets/images/halloween_background.png",
+            "start_level": start_level1,
+        },
+        {
+            "name": "Harvesting Festival",
+            "image_path": "assets/images/thanksgiving_background.png",
+            "start_level": start_level2,
+        },
+        {
+            "name": "Santa's Present",
+            "image_path": "assets/images/christmas_background.png",
+            "start_level": start_level3,
+        },
+    ]
 
-    # Buttons for each level
-    tk.Button(selection_screen, text="Halloween", font=("Arial", 18), command=lambda: start_level1(root, level_selection_screen), bg="orange", fg="black").pack(pady=10)
-    tk.Button(selection_screen, text="Thanksgiving", font=("Arial", 18), command=lambda: start_level2(root, level_selection_screen), bg="brown", fg="white").pack(pady=10)
-    tk.Button(selection_screen, text="Christmas", font=("Arial", 18), command=lambda: start_level3(root, level_selection_screen), bg="green", fg="white").pack(pady=10)
+    # Configure grid columns for alignment and spacing
+    selection_screen.grid_columnconfigure(0, weight=1)
+    selection_screen.grid_columnconfigure(3, weight=1)
+
+    # Title for level selection screen on the left, split into two lines
+    title_label = tk.Label(selection_screen, text="Select the Holiday\nGame you want to play", font=("Helvetica", 20, "bold"), justify="right")
+    title_label.grid(row=0, column=1, padx=(0, 20), sticky="e")
+
+    # Instructional description below the title, split into two lines
+    description_label = tk.Label(selection_screen, text="Click on the images to enter the game.\nThe difficulty increases from Halloween to Christmas", font=("Helvetica", 12, "italic"), justify="right")
+    description_label.grid(row=1, column=1, padx=(0, 20), sticky="e")
+
+    # Display Halloween Level on the first row
+    try:
+        # Load and resize Halloween image
+        halloween_image = Image.open(level_info[0]["image_path"]).resize((300, 200), Image.LANCZOS)
+        halloween_photo = ImageTk.PhotoImage(halloween_image)
+
+        # Image Label for Halloween Level
+        halloween_label = tk.Label(selection_screen, image=halloween_photo)
+        halloween_label.image = halloween_photo  # Keep a reference
+        halloween_label.grid(row=0, column=2, rowspan=2, padx=10, pady=(5, 10), sticky="n")
+        halloween_label.bind("<Button-1>", lambda e: level_info[0]["start_level"](root, level_selection_screen))
+
+        # Name Label for Halloween Level below the image
+        halloween_name = tk.Label(selection_screen, text=level_info[0]["name"], font=("Helvetica", 16, "bold"))
+        halloween_name.grid(row=2, column=2, padx=10, pady=(0, 20), sticky="n")
+
+    except Exception as e:
+        print(f"Error loading Halloween image: {e}")
+
+    # Display Thanksgiving and Christmas Levels on the second row
+    for i, info in enumerate(level_info[1:], start=1):
+        try:
+            # Load and resize image for each level
+            level_image = Image.open(info["image_path"]).resize((300, 200), Image.LANCZOS)
+            level_photo = ImageTk.PhotoImage(level_image)
+
+            # Image Label for Thanksgiving and Christmas Levels
+            level_label = tk.Label(selection_screen, image=level_photo)
+            level_label.image = level_photo  # Keep a reference
+            level_label.grid(row=3, column=i, padx=10, pady=(0, 10), sticky="n")
+            level_label.bind("<Button-1>", lambda e, func=info["start_level"]: func(root, level_selection_screen))
+
+            # Name Label for each level below the image
+            level_name = tk.Label(selection_screen, text=info["name"], font=("Helvetica", 16, "bold"))
+            level_name.grid(row=4, column=i, padx=10, pady=(0, 20), sticky="n")
+
+        except Exception as e:
+            print(f"Error loading {info['name']} image: {e}")
+
 
 # --- Main Start Screen Setup ---
 start_screen = tk.Frame(root)
@@ -68,6 +132,6 @@ try:
 
 except Exception as e:
     print("Cover image not found:", e)
-    tk.Label(start_screen, text="HalloThanksMas", font=("Arial", 36, "bold")).pack(pady=50)
+    tk.Label(start_screen, text="HalloThanksMas", font=("Helvetica", 36, "bold")).pack(pady=50)
 
 root.mainloop()
