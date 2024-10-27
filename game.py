@@ -15,17 +15,14 @@ flash_job_id = None
 color_index = 0
 colors = ["orange", "yellow", "green"]
 
-# Function to start the game and go to level selection
 def start_game(event=None):
     global flashing
     flashing = False
     if flash_job_id is not None:
         root.after_cancel(flash_job_id)
-    
     root.unbind("<Key>")  # Unbind the key event to prevent repeated triggering
-    start_screen.destroy()  # Destroy the start screen
-    level_selection_screen()  # Go to level selection
-
+    start_screen.destroy()
+    level_selection_screen()
 
 def flash_text():
     global flash_job_id, color_index
@@ -37,15 +34,19 @@ def flash_text():
 
 # --- Level Selection Screen ---
 def level_selection_screen():
+    for widget in root.winfo_children():
+        widget.destroy()
+    
     selection_screen = tk.Frame(root)
     selection_screen.pack(fill="both", expand=True)
 
     title_label = tk.Label(selection_screen, text="Choose Your Level", font=("Arial", 24, "bold"))
     title_label.pack(pady=20)
 
-    tk.Button(selection_screen, text="Halloween", font=("Arial", 18), command=lambda: start_level1(root), bg="orange", fg="black").pack(pady=10)
-    tk.Button(selection_screen, text="Thanksgiving", font=("Arial", 18), command=lambda: start_level2(root), bg="brown", fg="white").pack(pady=10)
-    tk.Button(selection_screen, text="Christmas", font=("Arial", 18), command=lambda: start_level3(root), bg="green", fg="white").pack(pady=10)
+    # Buttons for each level
+    tk.Button(selection_screen, text="Halloween", font=("Arial", 18), command=lambda: start_level1(root, level_selection_screen), bg="orange", fg="black").pack(pady=10)
+    tk.Button(selection_screen, text="Thanksgiving", font=("Arial", 18), command=lambda: start_level2(root, level_selection_screen), bg="brown", fg="white").pack(pady=10)
+    tk.Button(selection_screen, text="Christmas", font=("Arial", 18), command=lambda: start_level3(root, level_selection_screen), bg="green", fg="white").pack(pady=10)
 
 # --- Main Start Screen Setup ---
 start_screen = tk.Frame(root)
