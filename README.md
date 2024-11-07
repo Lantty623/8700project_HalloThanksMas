@@ -38,7 +38,7 @@ To run the **HalloThanksMas Game**, you need to have the following dependencies 
 - **Pygame**: For game development and graphics
   - Install using:
     ```bash
-    pip3 install pygame
+    pip install pygame
     ```
 - **Tkinter**: Used for graphical user interface elements
   - On Linux, you may need to install it using:
