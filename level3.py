@@ -61,6 +61,7 @@ def start_level3(root, level_selection_screen):
 
     score = 0
     font = pygame.font.SysFont(None, 36)
+    candy_speed = cfg.CANDY_SPEED
 
     # game main loop
     running = True
@@ -90,7 +91,7 @@ def start_level3(root, level_selection_screen):
             candies.append((new_candy, candy_type))
 
         for c in list(candies):
-            c[0].move_ip(0, cfg.CANDY_SPEED)  # further increased speed
+            c[0].move_ip(0, candy_speed)  # further increased speed
             if c[0].colliderect(player):  # touch player
                 candies.remove(c)
                 if c[1] == "snowball":
@@ -99,6 +100,9 @@ def start_level3(root, level_selection_screen):
                     score += 1
             elif c[0].top > cfg.SCREENSIZE[1]:  # out of screen
                 candies.remove(c)
+
+        # gradually increase candy speed
+        candy_speed += 0.01
 
         # screen rendering
         screen.blit(background_img, (0, 0))
