@@ -107,7 +107,7 @@ def start_level1(root, level_selection_screen):
                 screen.blit(pumpkin_img, c[0].topleft)
 
         # display score
-        score_text = font.render(f"Score: {score}", True, (0, 0, 0))
+        score_text = font.render(f"Score: {score}", True, (255, 255, 255))
         screen.blit(score_text, (10, 10))
 
         pygame.display.flip()
