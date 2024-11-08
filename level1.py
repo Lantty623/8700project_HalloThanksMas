@@ -1,10 +1,9 @@
 import random
 import tkinter as tk
 import pygame
-from sqlalchemy.sql.operators import truediv
+from PIL import Image, ImageTk
 
 import cfg
-from PIL import Image, ImageTk
 
 def start_level1(root, level_selection_screen):
     # Clear the current window
@@ -37,19 +36,27 @@ def start_level1(root, level_selection_screen):
     pygame.display.set_caption("Halloween Game")
     clock = pygame.time.Clock()
 
+    # Load images
+    background_img = pygame.image.load("assets/images/halloween_background.png")
+    background_img = pygame.transform.scale(background_img, cfg.SCREENSIZE)
+    tray_img = pygame.image.load("assets/images/tray.png")
+    tray_img = pygame.transform.scale(tray_img, cfg.PLAYER_SIZE)
+    candy_img = pygame.image.load("assets/images/candy.png")
+    candy_img = pygame.transform.scale(candy_img, cfg.CANDY_SIZE)
+    pumpkin_img = pygame.image.load("assets/images/pumpkin.png")
+    pumpkin_img = pygame.transform.scale(pumpkin_img, cfg.CANDY_SIZE)
+
     # player in middle bottom screen
     player = pygame.Rect(
         (cfg.SCREENSIZE[0] // 2 - cfg.PLAYER_SIZE[0] // 2,
         cfg.SCREENSIZE[1] - cfg.PLAYER_SIZE[1] -10),
         cfg.PLAYER_SIZE
-
     )
 
     candies = []
 
     score = 0
     font = pygame.font.SysFont(None, 36)
-
 
     # game main loop
     running = True
@@ -71,27 +78,33 @@ def start_level1(root, level_selection_screen):
             player.right = cfg.SCREENSIZE[0]
 
         # random candy drop
-        ranNum = random.randint(1,20)
-        if ranNum == 1 :
+        ranNum = random.randint(1, 20)
+        if ranNum == 1:
             candy_x = random.randint(0, cfg.SCREENSIZE[0] - cfg.CANDY_SIZE[0])
             new_candy = pygame.Rect(candy_x, 0, *cfg.CANDY_SIZE)
-            candies.append(new_candy)
+            candy_type = random.choice(["candy", "pumpkin"])
+            # Ensure new candy does not overlap with existing candies
+            if not any(new_candy.colliderect(c[0]) for c in candies):
+                candies.append((new_candy, candy_type))
 
         for c in list(candies):
-            c.move_ip(0,cfg.CANDY_SPEED)
-            if c.colliderect(player): # touch player
+            c[0].move_ip(0, cfg.CANDY_SPEED)
+            if c[0].colliderect(player):  # touch player
                 candies.remove(c)
                 score += 1
-            elif c.top > cfg.SCREENSIZE[1]: # out of screen
+            elif c[0].top > cfg.SCREENSIZE[1]:  # out of screen
                 candies.remove(c)
 
         # screen rendering
-        screen.fill(cfg.BGCOLOR)
-        pygame.draw.rect(screen, (255,0,0), player)
+        screen.blit(background_img, (0, 0))
+        screen.blit(tray_img, player.topleft)
 
         # display candies
         for c in candies:
-            pygame.draw.rect(screen, (0,0,255), c)
+            if c[1] == "candy":
+                screen.blit(candy_img, c[0].topleft)
+            else:
+                screen.blit(pumpkin_img, c[0].topleft)
 
         # display score
         score_text = font.render(f"Score: {score}", True, (0, 0, 0))

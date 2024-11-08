@@ -36,6 +36,14 @@ def start_level2(root, level_selection_screen):
     pygame.display.set_caption("Thanksgiving Game")
     clock = pygame.time.Clock()
 
+    # Load images
+    background_img = pygame.image.load("assets/images/thanksgiving_background.png")
+    background_img = pygame.transform.scale(background_img, cfg.SCREENSIZE)
+    tray_img = pygame.image.load("assets/images/tray.png")
+    tray_img = pygame.transform.scale(tray_img, cfg.PLAYER_SIZE)
+    turkey_img = pygame.image.load("assets/images/turkey.png")
+    turkey_img = pygame.transform.scale(turkey_img, cfg.CANDY_SIZE)
+
     # player in middle bottom screen
     player = pygame.Rect(
         (cfg.SCREENSIZE[0] // 2 - cfg.PLAYER_SIZE[0] // 2,
@@ -68,7 +76,7 @@ def start_level2(root, level_selection_screen):
         if player.right > cfg.SCREENSIZE[0]:
             player.right = cfg.SCREENSIZE[0]
 
-        # random candy drop with increased frequency
+        # random turkey drop with increased frequency
         ranNum = random.randint(1, 15)
         if ranNum == 1:
             candy_x = random.randint(0, cfg.SCREENSIZE[0] - cfg.CANDY_SIZE[0])
@@ -87,15 +95,15 @@ def start_level2(root, level_selection_screen):
         candy_speed += 0.01
 
         # screen rendering
-        screen.fill(cfg.BGCOLOR)
-        pygame.draw.rect(screen, (255, 0, 0), player)
+        screen.blit(background_img, (0, 0))
+        screen.blit(tray_img, player.topleft)
 
-        # display candies
+        # display turkeys
         for c in candies:
-            pygame.draw.rect(screen, (0, 0, 255), c)
+            screen.blit(turkey_img, c.topleft)
 
         # display score
-        score_text = font.render(f"Score: {score}", True, (0, 0, 0))
+        score_text = font.render(f"Score: {score}", True, (255, 255, 255))
         screen.blit(score_text, (10, 10))
 
         pygame.display.flip()

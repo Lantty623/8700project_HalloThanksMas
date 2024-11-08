@@ -36,6 +36,20 @@ def start_level3(root, level_selection_screen):
     pygame.display.set_caption("Christmas Game")
     clock = pygame.time.Clock()
 
+    # Load images
+    background_img = pygame.image.load("assets/images/christmas_background.png")
+    background_img = pygame.transform.scale(background_img, cfg.SCREENSIZE)
+    tray_img = pygame.image.load("assets/images/tray.png")
+    tray_img = pygame.transform.scale(tray_img, cfg.PLAYER_SIZE)
+    present_img = pygame.image.load("assets/images/present.png")
+    present_img = pygame.transform.scale(present_img, cfg.CANDY_SIZE)
+    santa_img = pygame.image.load("assets/images/santa.png")
+    santa_img = pygame.transform.scale(santa_img, cfg.CANDY_SIZE)
+    snowball_img = pygame.image.load("assets/images/snowball.png")
+    snowball_img = pygame.transform.scale(snowball_img, cfg.CANDY_SIZE)
+    snowman_img = pygame.image.load("assets/images/snowman.png")
+    snowman_img = pygame.transform.scale(snowman_img, cfg.CANDY_SIZE)
+
     # player in middle bottom screen
     player = pygame.Rect(
         (cfg.SCREENSIZE[0] // 2 - cfg.PLAYER_SIZE[0] // 2,
@@ -47,8 +61,6 @@ def start_level3(root, level_selection_screen):
 
     score = 0
     font = pygame.font.SysFont(None, 36)
-    candy_speed = cfg.CANDY_SPEED
-    candy_size = list(cfg.CANDY_SIZE)
 
     # game main loop
     running = True
@@ -72,33 +84,39 @@ def start_level3(root, level_selection_screen):
         # random candy drop with further increased frequency
         ranNum = random.randint(1, 10)
         if ranNum == 1:
-            candy_x = random.randint(0, cfg.SCREENSIZE[0] - int(candy_size[0]))
-            new_candy = pygame.Rect(candy_x, 0, int(candy_size[0]), int(candy_size[1]))
-            candies.append(new_candy)
+            candy_x = random.randint(0, cfg.SCREENSIZE[0] - cfg.CANDY_SIZE[0])
+            new_candy = pygame.Rect(candy_x, 0, *cfg.CANDY_SIZE)
+            candy_type = random.choice(["present", "santa", "snowball", "snowman"])
+            candies.append((new_candy, candy_type))
 
         for c in list(candies):
-            c.move_ip(0, candy_speed)  # further increased speed
-            if c.colliderect(player):  # touch player
+            c[0].move_ip(0, cfg.CANDY_SPEED)  # further increased speed
+            if c[0].colliderect(player):  # touch player
                 candies.remove(c)
-                score += 1
-            elif c.top > cfg.SCREENSIZE[1]:  # out of screen
+                if c[1] == "snowball":
+                    score -= 1
+                else:
+                    score += 1
+            elif c[0].top > cfg.SCREENSIZE[1]:  # out of screen
                 candies.remove(c)
-
-        # gradually increase candy speed and decrease candy size
-        candy_speed += 0.02
-        candy_size[0] = max(10, candy_size[0] - 0.01)
-        candy_size[1] = max(10, candy_size[1] - 0.01)
 
         # screen rendering
-        screen.fill(cfg.BGCOLOR)
-        pygame.draw.rect(screen, (255, 0, 0), player)
+        screen.blit(background_img, (0, 0))
+        screen.blit(tray_img, player.topleft)
 
         # display candies
         for c in candies:
-            pygame.draw.rect(screen, (0, 0, 255), c)
+            if c[1] == "present":
+                screen.blit(present_img, c[0].topleft)
+            elif c[1] == "santa":
+                screen.blit(santa_img, c[0].topleft)
+            elif c[1] == "snowball":
+                screen.blit(snowball_img, c[0].topleft)
+            elif c[1] == "snowman":
+                screen.blit(snowman_img, c[0].topleft)
 
         # display score
-        score_text = font.render(f"Score: {score}", True, (0, 0, 0))
+        score_text = font.render(f"Score: {score}", True, (255, 255, 255))
         screen.blit(score_text, (10, 10))
 
         pygame.display.flip()
