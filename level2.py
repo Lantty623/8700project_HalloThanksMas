@@ -12,7 +12,14 @@ def start_level2(root, level_selection_screen):
 
     # Initialize Pygame
     pygame.init()
-    
+    pygame.mixer.init()  # Initialize the mixer for sound
+
+    # Load sounds
+    item_catch_sound = pygame.mixer.Sound("assets/sounds/item_catch.mp3")  # Sound when item is caught
+    set_complete_sound = pygame.mixer.Sound("assets/sounds/set_complete.mp3")  # Sound when set is completed
+    pygame.mixer.music.load("assets/sounds/thanksgiving_background.mp3")  # Background music
+    pygame.mixer.music.play(-1)  # Loop the background music indefinitely
+
     # Create a tkinter Canvas to hold the pygame surface
     game_canvas = tk.Canvas(root, width=cfg.SCREENSIZE[0], height=cfg.SCREENSIZE[1])
     game_canvas.pack()
@@ -129,10 +136,12 @@ def start_level2(root, level_selection_screen):
             if c[0].colliderect(player):  # Catch object
                 candies.remove(c)
                 collected_items[c[2]] += 1  # Update collected count for the object type
+                item_catch_sound.play()  # Play item catch sound
 
                 # Check for combo completion
                 if check_combo_completion():
                     score += 100  # Award points for completing the set
+                    set_complete_sound.play()  # Play set completion sound
                     collected_items = {key: 0 for key in collected_items}  # Reset collection
                     refresh_combo_requirements()  # Set a new combo requirement
 
@@ -167,8 +176,6 @@ def start_level2(root, level_selection_screen):
         
             item_x += 50  # Move x position for the next item
 
-
-
         # Render the pygame surface onto the tkinter canvas
         game_surface = pygame.image.tostring(screen, "RGB")
         game_image = Image.frombytes("RGB", cfg.SCREENSIZE, game_surface)
@@ -181,8 +188,6 @@ def start_level2(root, level_selection_screen):
         else:
             pygame.quit()
             show_final_score(root, score, level_selection_screen)
-
-
 
     # Run the game loop
     running = True
