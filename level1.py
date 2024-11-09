@@ -10,9 +10,23 @@ def start_level1(root, level_selection_screen):
     for widget in root.winfo_children():
         widget.destroy()
 
-    # Initialize Pygame
+    # Initialize Pygame and Pygame Mixer for sound
     pygame.init()
+    pygame.mixer.init()
     
+    # Load sounds
+    try:
+        pygame.mixer.music.load("assets/sounds/halloween_background.mp3")
+        pygame.mixer.music.set_volume(0.5)  # Adjust volume as needed
+        pygame.mixer.music.play(-1)  # Play background music in a loop
+        
+        candy_sound = pygame.mixer.Sound("assets/sounds/candy_sound.mp3")
+        ghost_sound = pygame.mixer.Sound("assets/sounds/ghost_sound.mp3")
+        candy_sound.set_volume(0.7)  # Adjust volume as needed
+        ghost_sound.set_volume(0.7)  # Adjust volume as needed
+    except Exception as e:
+        print("Error loading sound files:", e)
+
     # Create a tkinter Canvas to hold the pygame surface
     game_canvas = tk.Canvas(root, width=cfg.SCREENSIZE[0], height=cfg.SCREENSIZE[1])
     game_canvas.pack()
@@ -85,23 +99,24 @@ def start_level1(root, level_selection_screen):
         # Ensure the player stays within screen bounds
         player.clamp_ip(screen.get_rect())
 
-        # Random candy drop
+        # Random candy/ghost drop
         if random.randint(1, 20) == 1:
             candy_x = random.randint(0, cfg.SCREENSIZE[0] - cfg.CANDY_SIZE[0])
             new_candy = pygame.Rect(candy_x, 0, *cfg.CANDY_SIZE)
             candy_type = random.choice(["candy", "ghost"])
-            if not any(new_candy.colliderect(c[0]) for c in candies):
-                candies.append((new_candy, candy_type))
+            candies.append((new_candy, candy_type))
 
-         # Move candies and check for collision with player
+        # Move candies and check for collision with player
         for c in list(candies):
             c[0].move_ip(0, cfg.CANDY_SPEED)
             if c[0].colliderect(player):  # Catch item
                 candies.remove(c)
                 if c[1] == "candy":
                     score += 100  # Add points for candy
+                    candy_sound.play()  # Play candy sound
                 elif c[1] == "ghost":
                     score -= 50  # Deduct points for ghost
+                    ghost_sound.play()  # Play ghost sound
             elif c[0].top > cfg.SCREENSIZE[1]:  # Out of screen
                 candies.remove(c)
 
@@ -109,6 +124,7 @@ def start_level1(root, level_selection_screen):
         screen.blit(background_img, (0, 0))
         screen.blit(pumpkin_img, player.topleft)
 
+        # Display candies and ghosts
         for c in candies:
             if c[1] == "candy":
                 screen.blit(candy_img, c[0].topleft)
@@ -131,6 +147,7 @@ def start_level1(root, level_selection_screen):
         if running:
             root.after(30, game_loop)  # Schedule the next game loop iteration
         else:
+            pygame.mixer.music.stop()  # Stop background music when the game ends
             pygame.quit()
             show_final_score(root, score, level_selection_screen)
 
