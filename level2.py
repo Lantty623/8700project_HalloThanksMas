@@ -58,6 +58,9 @@ def start_level2(root, level_selection_screen):
     score = 0
     font = pygame.font.SysFont(None, 36)
 
+    # Item points
+    item_points = {"turkey": 100, "pie": 50, "mash": 150}  # Points for each item type
+
     # Timer initialization
     start_time = time.time()
     candy_speed = cfg.CANDY_SPEED*2  # Set to original speed
@@ -101,6 +104,10 @@ def start_level2(root, level_selection_screen):
             if collected_items[item] < required_count:
                 return False
         return True
+    
+    # Function to calculate score based on current combo requirements
+    def calculate_combo_score():
+        return sum(item_points[item] * count for item, count in combo_requirements.items())
 
     # Game loop function
     def game_loop():
@@ -138,13 +145,14 @@ def start_level2(root, level_selection_screen):
                 collected_items[c[2]] += 1  # Update collected count for the object type
                 item_catch_sound.play()  # Play item catch sound
 
-                # Check for combo completion
+               # Check for combo completion
                 if check_combo_completion():
-                    score += 100  # Award points for completing the set
+                    combo_score = calculate_combo_score()  # Calculate dynamic score for the completed set
+                    score += combo_score  # Add calculated score
                     set_complete_sound.play()  # Play set completion sound
                     collected_items = {key: 0 for key in collected_items}  # Reset collection
                     refresh_combo_requirements()  # Set a new combo requirement
-
+                    
             elif c[0].top > cfg.SCREENSIZE[1]:  # Out of screen
                 candies.remove(c)
 
