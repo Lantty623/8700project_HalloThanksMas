@@ -40,7 +40,8 @@ def start_level2(root, level_selection_screen):
     background_img = pygame.image.load("assets/images/thanksgiving_background.png")
     background_img = pygame.transform.scale(background_img, cfg.SCREENSIZE)
     tray_img = pygame.image.load("assets/images/tray.png")
-    tray_img = pygame.transform.scale(tray_img, cfg.PLAYER_SIZE)
+    custom_tray_size = (int(cfg.PLAYER_SIZE[0] * 1.5), int(cfg.PLAYER_SIZE[1] * 0.5))
+    tray_img = pygame.transform.scale(tray_img, custom_tray_size)
     turkey_img = pygame.image.load("assets/images/turkey.png")
     turkey_img = pygame.transform.scale(turkey_img, cfg.CANDY_SIZE)
 
@@ -48,7 +49,7 @@ def start_level2(root, level_selection_screen):
     player = pygame.Rect(
         (cfg.SCREENSIZE[0] // 2 - cfg.PLAYER_SIZE[0] // 2,
         cfg.SCREENSIZE[1] - cfg.PLAYER_SIZE[1] -10),
-        cfg.PLAYER_SIZE
+        custom_tray_size
     )
 
     candies = []

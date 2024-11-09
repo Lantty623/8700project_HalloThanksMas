@@ -40,7 +40,8 @@ def start_level3(root, level_selection_screen):
     background_img = pygame.image.load("assets/images/christmas_background.png")
     background_img = pygame.transform.scale(background_img, cfg.SCREENSIZE)
     sleigh_img = pygame.image.load("assets/images/sleigh.png")
-    sleigh_img = pygame.transform.scale(sleigh_img, cfg.PLAYER_SIZE)
+    custom_sleigh_size = (int(cfg.PLAYER_SIZE[0] * 1.5), int(cfg.PLAYER_SIZE[1] * 0.5))
+    sleigh_img = pygame.transform.scale(sleigh_img, custom_sleigh_size)
     present_img = pygame.image.load("assets/images/present.png")
     present_img = pygame.transform.scale(present_img, cfg.CANDY_SIZE)
     santa_img = pygame.image.load("assets/images/santa.png")
@@ -54,7 +55,7 @@ def start_level3(root, level_selection_screen):
     player = pygame.Rect(
         (cfg.SCREENSIZE[0] // 2 - cfg.PLAYER_SIZE[0] // 2,
         cfg.SCREENSIZE[1] - cfg.PLAYER_SIZE[1] -10),
-        cfg.PLAYER_SIZE
+        custom_sleigh_size
     )
 
     candies = []
