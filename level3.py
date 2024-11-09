@@ -39,8 +39,8 @@ def start_level3(root, level_selection_screen):
     # Load images
     background_img = pygame.image.load("assets/images/christmas_background.png")
     background_img = pygame.transform.scale(background_img, cfg.SCREENSIZE)
-    tray_img = pygame.image.load("assets/images/tray.png")
-    tray_img = pygame.transform.scale(tray_img, cfg.PLAYER_SIZE)
+    sleigh_img = pygame.image.load("assets/images/sleigh.png")
+    sleigh_img = pygame.transform.scale(sleigh_img, cfg.PLAYER_SIZE)
     present_img = pygame.image.load("assets/images/present.png")
     present_img = pygame.transform.scale(present_img, cfg.CANDY_SIZE)
     santa_img = pygame.image.load("assets/images/santa.png")
@@ -106,7 +106,7 @@ def start_level3(root, level_selection_screen):
 
         # screen rendering
         screen.blit(background_img, (0, 0))
-        screen.blit(tray_img, player.topleft)
+        screen.blit(sleigh_img, player.topleft)
 
         # display candies
         for c in candies:
