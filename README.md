@@ -9,9 +9,9 @@ This game is part of the CPSC 8700 Software Design course project. Students were
 ## Game Details
 
 - **Levels**: The game has three levels:
-  - **Level 1**: Halloween-themed
-  - **Level 2**: Thanksgiving-themed
-  - **Level 3**: Christmas-themed
+  - **Level 1**: Halloween-themed - Features a spooky background and requires the player to catch candy for points, but watch out! Catching ghosts will reduce the score. Sound effects for item catches and themed background music add to the Halloween atmosphere.
+  - **Level 2**: Thanksgiving-themed - Adds a unique combo-based scoring system where players need to collect a set of themed items (turkey, pie, mash). Each completed set contributes to the score based on item-specific points (e.g., turkey: 100, pie: 50, mash: 150). Players receive sound feedback for item catches and completed sets, alongside
+  - **Level 3**: Christmas-themed - To be continued...
 - Each level includes:
   - A uniquely designed catching container
   - Themed items to catch
@@ -62,6 +62,22 @@ Ensure these dependencies are correctly installed before running the game.
     ```bash
     python game.py
     ```
+
+## Acknowledgments
+
+We would like to extend our gratitude to the following sources for providing assets that made the HalloThanksMas game possible:
+
+- **Images and Art**: 
+  - Many of the images and design elements in this project were sourced from [Google Images](https://images.google.com/) and [Canva](https://www.canva.com/). 
+  - These assets helped bring the holiday themes to life across all levels of the game.
+
+- **Background Music**: 
+  - The immersive background music in each level was composed with the help of [AIVA](https://www.aiva.ai/), an AI music composition platform that added a festive atmosphere to the gameplay.
+
+- **Sound Effects**: 
+  - Sound effects, which enhance the player’s experience when interacting with items in the game, were sourced from [Zapsplat](https://www.zapsplat.com/). These sounds include effects for catching items and completing sets.
+
+Please note that all assets were used in compliance with the respective terms and licenses of each source.
 
 
 ## License
