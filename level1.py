@@ -93,12 +93,15 @@ def start_level1(root, level_selection_screen):
             if not any(new_candy.colliderect(c[0]) for c in candies):
                 candies.append((new_candy, candy_type))
 
-        # Move candies and check for collision
+         # Move candies and check for collision with player
         for c in list(candies):
             c[0].move_ip(0, cfg.CANDY_SPEED)
-            if c[0].colliderect(player):  # Catch candy
+            if c[0].colliderect(player):  # Catch item
                 candies.remove(c)
-                score += 1
+                if c[1] == "candy":
+                    score += 100  # Add points for candy
+                elif c[1] == "ghost":
+                    score -= 50  # Deduct points for ghost
             elif c[0].top > cfg.SCREENSIZE[1]:  # Out of screen
                 candies.remove(c)
 
