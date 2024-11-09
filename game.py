@@ -33,7 +33,6 @@ def flash_text():
         flash_job_id = root.after(500, flash_text)
 
 # --- Level Selection Screen ---
-# --- Level Selection Screen ---
 def level_selection_screen():
     for widget in root.winfo_children():
         widget.destroy()

@@ -39,12 +39,12 @@ def start_level1(root, level_selection_screen):
     # Load images
     background_img = pygame.image.load("assets/images/halloween_background.png")
     background_img = pygame.transform.scale(background_img, cfg.SCREENSIZE)
-    tray_img = pygame.image.load("assets/images/tray.png")
-    tray_img = pygame.transform.scale(tray_img, cfg.PLAYER_SIZE)
+    pumpkin_img = pygame.image.load("assets/images/pumpkin.png")
+    pumpkin_img = pygame.transform.scale(pumpkin_img, cfg.PLAYER_SIZE)
     candy_img = pygame.image.load("assets/images/candy.png")
     candy_img = pygame.transform.scale(candy_img, cfg.CANDY_SIZE)
-    pumpkin_img = pygame.image.load("assets/images/pumpkin.png")
-    pumpkin_img = pygame.transform.scale(pumpkin_img, cfg.CANDY_SIZE)
+    ghost_img = pygame.image.load("assets/images/ghost.png")
+    ghost_img = pygame.transform.scale(ghost_img, cfg.CANDY_SIZE)
 
     # player in middle bottom screen
     player = pygame.Rect(
@@ -82,7 +82,7 @@ def start_level1(root, level_selection_screen):
         if ranNum == 1:
             candy_x = random.randint(0, cfg.SCREENSIZE[0] - cfg.CANDY_SIZE[0])
             new_candy = pygame.Rect(candy_x, 0, *cfg.CANDY_SIZE)
-            candy_type = random.choice(["candy", "pumpkin"])
+            candy_type = random.choice(["candy", "ghost"])
             # Ensure new candy does not overlap with existing candies
             if not any(new_candy.colliderect(c[0]) for c in candies):
                 candies.append((new_candy, candy_type))
@@ -97,14 +97,14 @@ def start_level1(root, level_selection_screen):
 
         # screen rendering
         screen.blit(background_img, (0, 0))
-        screen.blit(tray_img, player.topleft)
+        screen.blit(pumpkin_img, player.topleft)
 
         # display candies
         for c in candies:
             if c[1] == "candy":
                 screen.blit(candy_img, c[0].topleft)
             else:
-                screen.blit(pumpkin_img, c[0].topleft)
+                screen.blit(ghost_img, c[0].topleft)
 
         # display score
         score_text = font.render(f"Score: {score}", True, (255, 255, 255))
