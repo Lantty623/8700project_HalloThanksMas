@@ -3,15 +3,22 @@ import tkinter as tk
 import pygame
 import time
 from PIL import Image, ImageTk
-
 import cfg
 
 def start_level1(root, level_selection_screen):
+    # Clear the current window
+    for widget in root.winfo_children():
+        widget.destroy()
 
-    # init game
+    # Initialize Pygame
     pygame.init()
-    screen = pygame.display.set_mode(cfg.SCREENSIZE)
-    pygame.display.set_caption("Halloween Game")
+    
+    # Create a tkinter Canvas to hold the pygame surface
+    game_canvas = tk.Canvas(root, width=cfg.SCREENSIZE[0], height=cfg.SCREENSIZE[1])
+    game_canvas.pack()
+    
+    # Create a pygame Surface to render the game
+    screen = pygame.Surface(cfg.SCREENSIZE)
     clock = pygame.time.Clock()
 
     # Load images
@@ -27,70 +34,78 @@ def start_level1(root, level_selection_screen):
     # player in middle bottom screen
     player = pygame.Rect(
         (cfg.SCREENSIZE[0] // 2 - cfg.PLAYER_SIZE[0] // 2,
-        cfg.SCREENSIZE[1] - cfg.PLAYER_SIZE[1] -10),
+        cfg.SCREENSIZE[1] - cfg.PLAYER_SIZE[1] - 10),
         cfg.PLAYER_SIZE
     )
 
     candies = []
-
     score = 0
     font = pygame.font.SysFont(None, 36)
 
-    # **Timer Initialization**
-    start_time = time.time()  # Capture the start time
+    # Timer initialization
+    start_time = time.time()
 
+    # Key state tracking for movement
+    keys_pressed = {"left": False, "right": False}
 
-    # game main loop
-    running = True
-    while running:
+    # Define functions to handle key events
+    def on_key_press(event):
+        if event.keysym == "Left":
+            keys_pressed["left"] = True
+        elif event.keysym == "Right":
+            keys_pressed["right"] = True
+
+    def on_key_release(event):
+        if event.keysym == "Left":
+            keys_pressed["left"] = False
+        elif event.keysym == "Right":
+            keys_pressed["right"] = False
+
+    # Bind the key events to tkinter
+    root.bind("<KeyPress>", on_key_press)
+    root.bind("<KeyRelease>", on_key_release)
+
+    # Game loop function
+    def game_loop():
+        nonlocal running, score
+
         # Check for time elapsed
         elapsed_time = time.time() - start_time
         remaining_time = cfg.GAME_DURATION - elapsed_time
 
-        # End game when time is up
         if remaining_time <= 0:
-            running = False  # Exit the game loop to end the game
+            running = False  # End the game if time is up
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_LEFT]:
+        # Handle player movement based on key presses
+        if keys_pressed["left"]:
             player.move_ip(-cfg.PLAYER_SPEED, 0)
-        if keys[pygame.K_RIGHT]:
+        if keys_pressed["right"]:
             player.move_ip(cfg.PLAYER_SPEED, 0)
-        
 
         # Ensure the player stays within screen bounds
-        if player.left < 0:
-            player.left = 0
-        if player.right > cfg.SCREENSIZE[0]:
-            player.right = cfg.SCREENSIZE[0]
+        player.clamp_ip(screen.get_rect())
 
-        # random candy drop
-        ranNum = random.randint(1, 20)
-        if ranNum == 1:
+        # Random candy drop
+        if random.randint(1, 20) == 1:
             candy_x = random.randint(0, cfg.SCREENSIZE[0] - cfg.CANDY_SIZE[0])
             new_candy = pygame.Rect(candy_x, 0, *cfg.CANDY_SIZE)
             candy_type = random.choice(["candy", "ghost"])
-            # Ensure new candy does not overlap with existing candies
             if not any(new_candy.colliderect(c[0]) for c in candies):
                 candies.append((new_candy, candy_type))
 
+        # Move candies and check for collision
         for c in list(candies):
             c[0].move_ip(0, cfg.CANDY_SPEED)
-            if c[0].colliderect(player):  # touch player
+            if c[0].colliderect(player):  # Catch candy
                 candies.remove(c)
                 score += 1
-            elif c[0].top > cfg.SCREENSIZE[1]:  # out of screen
+            elif c[0].top > cfg.SCREENSIZE[1]:  # Out of screen
                 candies.remove(c)
 
-        # screen rendering
+        # Draw everything on the pygame surface
         screen.blit(background_img, (0, 0))
         screen.blit(pumpkin_img, player.topleft)
 
-        # display candies
         for c in candies:
             if c[1] == "candy":
                 screen.blit(candy_img, c[0].topleft)
@@ -103,14 +118,22 @@ def start_level1(root, level_selection_screen):
         screen.blit(score_text, (10, 10))
         screen.blit(time_text, (10, 50))
 
-        pygame.display.flip()
-        # update speed
-        clock.tick(cfg.FPS)
+        # Render the pygame surface onto the tkinter canvas
+        game_surface = pygame.image.tostring(screen, "RGB")
+        game_image = Image.frombytes("RGB", cfg.SCREENSIZE, game_surface)
+        game_photo = ImageTk.PhotoImage(game_image)
+        game_canvas.create_image(0, 0, anchor="nw", image=game_photo)
+        game_canvas.image = game_photo  # Keep a reference to avoid garbage collection
 
-    # End the game and return to the level selection screen
-    show_final_score(root, score, level_selection_screen)    
+        if running:
+            root.after(30, game_loop)  # Schedule the next game loop iteration
+        else:
+            pygame.quit()
+            show_final_score(root, score, level_selection_screen)
 
-    pygame.quit()
+    # Run the game loop
+    running = True
+    game_loop()
 
 def show_final_score(root, score, level_selection_screen):
     # Clear screen and display final score
@@ -123,13 +146,13 @@ def show_final_score(root, score, level_selection_screen):
     # Display the return icon
     try:
         return_img = Image.open("assets/images/return_icon.png")
-        return_img = return_img.resize((80, 80), Image.LANCZOS)  # Resize if needed
+        return_img = return_img.resize((80, 80), Image.LANCZOS)
         return_icon = ImageTk.PhotoImage(return_img)
 
         # Create a label with the return icon, placed in the center below the score
         return_label = tk.Label(root, image=return_icon)
         return_label.image = return_icon  # Keep a reference to avoid garbage collection
-        return_label.pack(pady=20)  # Position below the score
+        return_label.pack(pady=20)
 
         # Bind the click event to return to level selection
         return_label.bind("<Button-1>", lambda e: level_selection_screen())
