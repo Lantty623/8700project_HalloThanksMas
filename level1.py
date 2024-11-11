@@ -5,7 +5,7 @@ import time
 from PIL import Image, ImageTk
 import cfg
 
-def start_level1(root, level_selection_screen):
+def level1_game(root, level_selection_screen):
     # Clear the current window
     for widget in root.winfo_children():
         widget.destroy()

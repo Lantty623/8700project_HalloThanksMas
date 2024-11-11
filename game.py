@@ -1,8 +1,8 @@
 import tkinter as tk
 from PIL import Image, ImageTk, ImageEnhance
-from level1 import start_level1
-from level2 import start_level2
-from level3 import start_level3
+from level1 import level1_game
+from level2 import level2_game
+from level3 import level3_game
 
 # Initialize the main window
 root = tk.Tk()
@@ -45,17 +45,17 @@ def level_selection_screen():
         {
             "name": "Trick-or-treating",
             "image_path": "assets/images/halloween_background.png",
-            "start_level": start_level1,
+            "start_level": level1_game,
         },
         {
             "name": "Harvesting Festival",
             "image_path": "assets/images/thanksgiving_background.png",
-            "start_level": start_level2,
+            "start_level": level2_game,
         },
         {
             "name": "Santa's Present",
             "image_path": "assets/images/christmas_background.png",
-            "start_level": start_level3,
+            "start_level": level3_game,
         },
     ]
 
