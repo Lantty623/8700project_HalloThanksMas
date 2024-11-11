@@ -12,7 +12,16 @@ def start_level3(root, level_selection_screen):
 
     # Initialize Pygame
     pygame.init()
-    pygame.mixer.init()  # Initialize mixer for sound effects if needed
+    pygame.mixer.init()  # Initialize mixer for sound effects
+
+    # Load sound files
+    pygame.mixer.music.load("assets/sounds/christmas_background.mp3")  # Background music file
+    present_sound = pygame.mixer.Sound("assets/sounds/present_sound.mp3")  # Sound effect for catching a present
+    snowball_sound = pygame.mixer.Sound("assets/sounds/snowball_sound.mp3")  # Sound effect for catching a snowball
+    freeze_sound = pygame.mixer.Sound("assets/sounds/freeze_sound.mp3")  # Sound effect for catching a snowman
+
+    # Start background music
+    pygame.mixer.music.play(loops=-1)  # Loop the music indefinitely
 
     # Create a tkinter Canvas to hold the pygame surface
     game_canvas = tk.Canvas(root, width=cfg.SCREENSIZE[0], height=cfg.SCREENSIZE[1])
@@ -32,11 +41,13 @@ def start_level3(root, level_selection_screen):
     present_img = pygame.transform.scale(present_img, cfg.CANDY_SIZE)
     snowball_img = pygame.image.load("assets/images/snowball.png")
     snowball_img = pygame.transform.scale(snowball_img, cfg.CANDY_SIZE)
+    snowman_img = pygame.image.load("assets/images/snowman.png")
+    snowman_img = pygame.transform.scale(snowman_img, cfg.CANDY_SIZE)
 
     # Player setup in the middle bottom screen
     player = pygame.Rect(
         (cfg.SCREENSIZE[0] // 2 - custom_sleigh_size[0] // 2,
-        cfg.SCREENSIZE[1] - custom_sleigh_size[1] - 10),
+         cfg.SCREENSIZE[1] - custom_sleigh_size[1] - 10),
         custom_sleigh_size
     )
 
@@ -48,7 +59,8 @@ def start_level3(root, level_selection_screen):
     start_time = time.time()
     candy_speed = cfg.CANDY_SPEED * 2
     freeze_end_time = 0  # Initialize freeze time to zero
-    freeze_warning_shown = False  # Track if freeze warning is already shown
+    freeze_warning_popup = None  # Popup for freeze warning
+    freeze_warning_shown = False  # Track if warning has been shown for current freeze
 
     # Key state tracking for movement
     keys_pressed = {"left": False, "right": False}
@@ -72,31 +84,37 @@ def start_level3(root, level_selection_screen):
 
     # Function to show freeze warning with countdown
     def show_freeze_warning():
-        nonlocal freeze_warning_shown
-        if not freeze_warning_shown:  # Show warning only if it hasn't been shown already
-            freeze_warning_shown = True
-            
-            popup = tk.Toplevel(root)
-            popup.title("Freeze Warning")
-            popup.geometry("300x100")
-            popup.transient(root)
-            popup.grab_set()
-            popup.lift()
-            popup.focus_force()
+        nonlocal freeze_warning_popup, freeze_warning_shown
+        if freeze_warning_popup is not None:
+            freeze_warning_popup.destroy()
+            freeze_warning_popup = None
 
-            label = tk.Label(popup, font=("Arial", 14), fg="red")
-            label.pack(expand=True)
+        # Only create a new popup if one does not already exist
+        freeze_warning_popup = tk.Toplevel(root)
+        freeze_warning_popup.title("Freeze Warning")
+        freeze_warning_popup.geometry("300x100")
+        freeze_warning_popup.transient(root)
+        freeze_warning_popup.grab_set()
+        freeze_warning_popup.lift()
+        freeze_warning_popup.focus_force()
+        freeze_warning_shown = True  # Set flag to indicate warning has been shown
 
-            # Update countdown in real-time
-            def update_countdown():
-                remaining_time = int(freeze_end_time - time.time())
-                if remaining_time > 0:
-                    label.config(text=f"Frozen! {remaining_time} seconds remaining...")
-                    popup.after(1000, update_countdown)  # Update every second
-                else:
-                    popup.destroy()  # Close pop-up when freeze ends
+        label = tk.Label(freeze_warning_popup, font=("Arial", 14), fg="red")
+        label.pack(expand=True)
 
-            update_countdown()
+        # Update countdown in real-time
+        def update_countdown():
+            nonlocal freeze_warning_popup
+            remaining_time = int(freeze_end_time - time.time())
+            if remaining_time > 0:
+                label.config(text=f"Frozen! {remaining_time} seconds remaining...")
+                freeze_warning_popup.after(1000, update_countdown)
+            else:
+                if freeze_warning_popup:
+                    freeze_warning_popup.destroy()
+                    freeze_warning_popup = None  # Reset popup reference
+
+        update_countdown()
 
     # Game loop function
     def game_loop():
@@ -116,18 +134,19 @@ def start_level3(root, level_selection_screen):
                 player.move_ip(-sleigh_speed, 0)
             if keys_pressed["right"]:
                 player.move_ip(sleigh_speed, 0)
-            freeze_warning_shown = False  # Reset warning flag after freeze ends
+            freeze_warning_shown = False  # Reset warning flag once freeze ends
         else:
-            # Show freeze warning only once per freeze event
-            show_freeze_warning()
+            # Show freeze warning only during freeze caused by snowman
+            if not freeze_warning_shown:
+                show_freeze_warning()
 
         # Ensure the player stays within screen bounds
         player.clamp_ip(screen.get_rect())
 
-        # Random item drop with specified frequency and ratio (5:1 for presents and snowballs)
+        # Random item drop with specified frequency and ratio (4:2:1 for presents, snowballs, and snowmen)
         if random.randint(1, 20) == 1:
             candy_x = random.randint(0, cfg.SCREENSIZE[0] - cfg.CANDY_SIZE[0])
-            candy_type = random.choices(["present", "snowball"], weights=[5, 1], k=1)[0]
+            candy_type = random.choices(["present", "snowball", "snowman"], weights=[4, 2, 1], k=1)[0]
             new_candy = pygame.Rect(candy_x, 0, *cfg.CANDY_SIZE)
             candies.append((new_candy, candy_type))
 
@@ -137,10 +156,15 @@ def start_level3(root, level_selection_screen):
             if candy[0].colliderect(player):  # Catch item
                 candies.remove(candy)
                 if candy[1] == "snowball":
+                    score -= 50  # Deduct points for catching a snowball
+                    snowball_sound.play()  # Play snowball sound effect
+                elif candy[1] == "snowman":
                     freeze_end_time = time.time() + 5  # Freeze player for 5 seconds
+                    freeze_sound.play()  # Play freeze sound effect
                     show_freeze_warning()  # Show freeze warning immediately
                 else:
                     score += 100  # Add points for catching a present
+                    present_sound.play()  # Play present sound effect
             elif candy[0].top > cfg.SCREENSIZE[1]:  # Out of screen
                 candies.remove(candy)
 
@@ -157,6 +181,8 @@ def start_level3(root, level_selection_screen):
                 screen.blit(present_img, candy[0].topleft)
             elif candy[1] == "snowball":
                 screen.blit(snowball_img, candy[0].topleft)
+            elif candy[1] == "snowman":
+                screen.blit(snowman_img, candy[0].topleft)
 
         # Display score and remaining time
         score_text = font.render(f"Score: {score}", True, (255, 255, 255))
@@ -175,6 +201,8 @@ def start_level3(root, level_selection_screen):
             root.after(16, game_loop)  # Schedule the next game loop iteration
         else:
             pygame.quit()
+            if pygame.mixer.get_init():  # Only stop music if mixer is initialized
+                pygame.mixer.music.stop()  # Stop background music
             show_final_score(root, score, level_selection_screen)
 
     # Run the game loop
