@@ -4,6 +4,7 @@ import pygame
 import time
 from PIL import Image, ImageTk
 import cfg
+from memento import Memento, Caretaker
 
 def level2_game(root, level_selection_screen):
     # Clear the current window
@@ -23,7 +24,7 @@ def level2_game(root, level_selection_screen):
     # Create a tkinter Canvas to hold the pygame surface
     game_canvas = tk.Canvas(root, width=cfg.SCREENSIZE[0], height=cfg.SCREENSIZE[1])
     game_canvas.pack()
-    
+
     # Create a pygame Surface to render the game
     screen = pygame.Surface(cfg.SCREENSIZE)
     clock = pygame.time.Clock()
@@ -34,7 +35,7 @@ def level2_game(root, level_selection_screen):
     tray_img = pygame.image.load("assets/images/tray.png")
     custom_tray_size = (int(cfg.PLAYER_SIZE[0] * 1.5), int(cfg.PLAYER_SIZE[1] * 0.5))
     tray_img = pygame.transform.scale(tray_img, custom_tray_size)
-    
+
     # Load individual images for each falling object type
     turkey_img = pygame.image.load("assets/images/turkey.png")
     turkey_img = pygame.transform.scale(turkey_img, cfg.CANDY_SIZE)
@@ -72,12 +73,17 @@ def level2_game(root, level_selection_screen):
     # Key state tracking for movement
     keys_pressed = {"left": False, "right": False}
 
+    # Game state
+    game_state = {"paused": False}
+
     # Define functions to handle key events
     def on_key_press(event):
         if event.keysym == "Left":
             keys_pressed["left"] = True
         elif event.keysym == "Right":
             keys_pressed["right"] = True
+        elif event.keysym == "p":  # Pause game on 'p' key press
+            game_state["paused"] = not game_state["paused"]
 
     def on_key_release(event):
         if event.keysym == "Left":
@@ -104,7 +110,7 @@ def level2_game(root, level_selection_screen):
             if collected_items[item] < required_count:
                 return False
         return True
-    
+
     # Function to calculate score based on current combo requirements
     def calculate_combo_score():
         return sum(item_points[item] * count for item, count in combo_requirements.items())
@@ -113,83 +119,84 @@ def level2_game(root, level_selection_screen):
     def game_loop():
         nonlocal running, score, candy_speed, collected_items
 
-        # Check for time elapsed
-        elapsed_time = time.time() - start_time
-        remaining_time = cfg.GAME_DURATION - elapsed_time
+        if not game_state["paused"]:
+            # Check for time elapsed
+            elapsed_time = time.time() - start_time
+            remaining_time = cfg.GAME_DURATION - elapsed_time
 
-        if remaining_time <= 0:
-            running = False  # End the game if time is up
+            if remaining_time <= 0:
+                running = False  # End the game if time is up
 
-        # Handle player movement based on key presses
-        if keys_pressed["left"]:
-            player.move_ip(-cfg.PLAYER_SPEED, 0)
-        if keys_pressed["right"]:
-            player.move_ip(cfg.PLAYER_SPEED, 0)
+            # Handle player movement based on key presses
+            if keys_pressed["left"]:
+                player.move_ip(-cfg.PLAYER_SPEED, 0)
+            if keys_pressed["right"]:
+                player.move_ip(cfg.PLAYER_SPEED, 0)
 
-        # Ensure the player stays within screen bounds
-        player.clamp_ip(screen.get_rect())
+            # Ensure the player stays within screen bounds
+            player.clamp_ip(screen.get_rect())
 
-        # Randomly drop a new object
-        if random.randint(1, 15) == 1:
-            candy_x = random.randint(0, cfg.SCREENSIZE[0] - cfg.CANDY_SIZE[0])
-            candy_type = random.choice(["turkey", "pie", "mash"])  # Randomly select the type
-            candy_img = turkey_img if candy_type == "turkey" else pie_img if candy_type == "pie" else mash_img
-            new_candy = pygame.Rect(candy_x, 0, *cfg.CANDY_SIZE)
-            candies.append((new_candy, candy_img, candy_type))  # Append as (position, image, type)
+            # Randomly drop a new object
+            if random.randint(1, 15) == 1:
+                candy_x = random.randint(0, cfg.SCREENSIZE[0] - cfg.CANDY_SIZE[0])
+                candy_type = random.choice(["turkey", "pie", "mash"])  # Randomly select the type
+                candy_img = turkey_img if candy_type == "turkey" else pie_img if candy_type == "pie" else mash_img
+                new_candy = pygame.Rect(candy_x, 0, *cfg.CANDY_SIZE)
+                candies.append((new_candy, candy_img, candy_type))  # Append as (position, image, type)
 
-        # Move candies and check for collision with player
-        for c in list(candies):
+            # Move candies and check for collision with player
+            for c in list(candies):
 
-            # random candy and turkey move
-            if c[2] == "turkey":
-                speed_x = random.choice([-30,-20,-10, 0, 10, 20, 30])
-            else:
-                speed_x = random.choice([-5, 0, 5])
+                # random candy and turkey move
+                if c[2] == "turkey":
+                    speed_x = random.choice([-30,-20,-10, 0, 10, 20, 30])
+                else:
+                    speed_x = random.choice([-5, 0, 5])
 
-            c[0].move_ip(speed_x, candy_speed)
-            if c[0].colliderect(player):  # Catch object
-                candies.remove(c)
-                collected_items[c[2]] += 1  # Update collected count for the object type
-                item_catch_sound.play()  # Play item catch sound
+                c[0].move_ip(speed_x, candy_speed)
+                if c[0].colliderect(player):  # Catch object
+                    candies.remove(c)
+                    collected_items[c[2]] += 1  # Update collected count for the object type
+                    item_catch_sound.play()  # Play item catch sound
 
-               # Check for combo completion
-                if check_combo_completion():
-                    combo_score = calculate_combo_score()  # Calculate dynamic score for the completed set
-                    score += combo_score  # Add calculated score
-                    set_complete_sound.play()  # Play set completion sound
-                    collected_items = {key: 0 for key in collected_items}  # Reset collection
-                    refresh_combo_requirements()  # Set a new combo requirement
-                    
-            elif c[0].top > cfg.SCREENSIZE[1]:  # Out of screen
-                candies.remove(c)
+                   # Check for combo completion
+                    if check_combo_completion():
+                        combo_score = calculate_combo_score()  # Calculate dynamic score for the completed set
+                        score += combo_score  # Add calculated score
+                        set_complete_sound.play()  # Play set completion sound
+                        collected_items = {key: 0 for key in collected_items}  # Reset collection
+                        refresh_combo_requirements()  # Set a new combo requirement
 
-        # Draw everything on the pygame surface
-        screen.blit(background_img, (0, 0))
-        screen.blit(tray_img, player.topleft)
+                elif c[0].top > cfg.SCREENSIZE[1]:  # Out of screen
+                    candies.remove(c)
 
-        # Display falling objects
-        for c in candies:
-            screen.blit(c[1], c[0].topleft)  # Use the image stored in the tuple
+            # Draw everything on the pygame surface
+            screen.blit(background_img, (0, 0))
+            screen.blit(tray_img, player.topleft)
 
-        # Display score and remaining time
-        score_text = font.render(f"Score: {score}", True, (255, 255, 255))
-        time_text = font.render(f"Time: {int(remaining_time)}", True, (255, 255, 255))
-        screen.blit(score_text, (10, 10))
-        screen.blit(time_text, (10, 50))
+            # Display falling objects
+            for c in candies:
+                screen.blit(c[1], c[0].topleft)  # Use the image stored in the tuple
 
-        # Display required set images and counters
-        item_x = 10  # Starting x position for displaying the required items
-        for item, required_count in combo_requirements.items():
-            item_img = turkey_img if item == "turkey" else pie_img if item == "pie" else mash_img
-            screen.blit(item_img, (item_x, 100))  # Display item image
-            required_text = font.render(f"{collected_items[item]}/{required_count}", True, (255, 255, 255))
-            screen.blit(required_text, (item_x, 130))  # Display collected/required count below the image
-        
-            # Display checkmark if item count is met or exceeded
-            if collected_items[item] >= required_count:
-                screen.blit(checkmark_img, (item_x + 35, 105))  # Position the checkmark to the right of the image
-        
-            item_x += 50  # Move x position for the next item
+            # Display score and remaining time
+            score_text = font.render(f"Score: {score}", True, (255, 255, 255))
+            time_text = font.render(f"Time: {int(remaining_time)}", True, (255, 255, 255))
+            screen.blit(score_text, (10, 10))
+            screen.blit(time_text, (10, 50))
+
+            # Display required set images and counters
+            item_x = 10  # Starting x position for displaying the required items
+            for item, required_count in combo_requirements.items():
+                item_img = turkey_img if item == "turkey" else pie_img if item == "pie" else mash_img
+                screen.blit(item_img, (item_x, 100))  # Display item image
+                required_text = font.render(f"{collected_items[item]}/{required_count}", True, (255, 255, 255))
+                screen.blit(required_text, (item_x, 130))  # Display collected/required count below the image
+
+                # Display checkmark if item count is met or exceeded
+                if collected_items[item] >= required_count:
+                    screen.blit(checkmark_img, (item_x + 35, 105))  # Position the checkmark to the right of the image
+
+                item_x += 50  # Move x position for the next item
 
         # Render the pygame surface onto the tkinter canvas
         game_surface = pygame.image.tostring(screen, "RGB")

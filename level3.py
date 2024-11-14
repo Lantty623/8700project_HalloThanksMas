@@ -4,6 +4,7 @@ import pygame
 import time
 from PIL import Image, ImageTk
 import cfg
+from memento import Memento, Caretaker
 
 def level3_game(root, level_selection_screen):
     # Clear the current window
@@ -68,12 +69,27 @@ def level3_game(root, level_selection_screen):
     # Key state tracking for movement
     keys_pressed = {"left": False, "right": False}
 
+    # Game state
+    game_state = {"paused": False}
+
+    # Memento and Caretaker for saving and restoring game state
+    caretaker = Caretaker()
+
     # Define functions to handle key events
     def on_key_press(event):
         if event.keysym == "Left":
             keys_pressed["left"] = True
         elif event.keysym == "Right":
             keys_pressed["right"] = True
+        elif event.keysym == "p":  # Pause game on 'p' key press
+            if game_state["paused"]:
+                state = caretaker.load_state()
+                if state:
+                    restore_state(state)
+                game_state["paused"] = False
+            else:
+                caretaker.save_state(Memento(save_state()))
+                game_state["paused"] = True
 
     def on_key_release(event):
         if event.keysym == "Left":
@@ -84,6 +100,27 @@ def level3_game(root, level_selection_screen):
     # Bind the key events to tkinter
     root.bind("<KeyPress>", on_key_press)
     root.bind("<KeyRelease>", on_key_release)
+
+    # Function to save the current game state
+    def save_state():
+        return {
+            "candies": candies.copy(),
+            "score": score,
+            "candy_speed": candy_speed,
+            "freeze_end_time": freeze_end_time,
+            "snow_height": snow_height,
+            "keys_pressed": keys_pressed.copy()
+        }
+
+    # Function to restore the game state from a memento
+    def restore_state(state):
+        nonlocal candies, score, candy_speed, freeze_end_time, snow_height, keys_pressed
+        candies = state["candies"]
+        score = state["score"]
+        candy_speed = state["candy_speed"]
+        freeze_end_time = state["freeze_end_time"]
+        snow_height = state["snow_height"]
+        keys_pressed = state["keys_pressed"]
 
     # Function to show freeze warning with countdown
     def show_freeze_warning():
@@ -123,87 +160,95 @@ def level3_game(root, level_selection_screen):
     def game_loop():
         nonlocal running, score, candy_speed, freeze_end_time, freeze_warning_shown, snow_height
 
-        # Check for time elapsed
-        elapsed_time = time.time() - start_time
-        remaining_time = cfg.GAME_DURATION - elapsed_time
+        if not game_state["paused"]:
+            # Check for time elapsed
+            elapsed_time = time.time() - start_time
+            remaining_time = cfg.GAME_DURATION - elapsed_time
 
-        if remaining_time <= 0:
-            running = False  # End the game if time is up
+            if remaining_time <= 0:
+                running = False  # End the game if time is up
 
-        # Handle player movement based on key presses, only if not frozen
-        if time.time() > freeze_end_time:
-            sleigh_speed = cfg.PLAYER_SPEED
-            if keys_pressed["left"]:
-                player.move_ip(-sleigh_speed, 0)
-            if keys_pressed["right"]:
-                player.move_ip(sleigh_speed, 0)
-            freeze_warning_shown = False  # Reset warning flag once freeze ends
-        else:
-            # Show freeze warning only during freeze caused by snowman
-            if not freeze_warning_shown:
-                show_freeze_warning()
+            # Handle player movement based on key presses, only if not frozen
+            if time.time() > freeze_end_time:
+                sleigh_speed = cfg.PLAYER_SPEED
+                if keys_pressed["left"]:
+                    player.move_ip(-sleigh_speed, 0)
+                if keys_pressed["right"]:
+                    player.move_ip(sleigh_speed, 0)
+                freeze_warning_shown = False  # Reset warning flag once freeze ends
+            else:
+                # Show freeze warning only during freeze caused by snowman
+                if not freeze_warning_shown:
+                    show_freeze_warning()
 
-        # Ensure the player stays within screen bounds horizontally
-        player.clamp_ip(pygame.Rect(0, player.top, cfg.SCREENSIZE[0], player.height))
+            # Ensure the player stays within screen bounds horizontally
+            player.clamp_ip(pygame.Rect(0, player.top, cfg.SCREENSIZE[0], player.height))
 
-        # Gradually increase snow height over time, up to half the screen height
-        snow_height = min(snow_height + 0.2, cfg.SCREENSIZE[1] // 2)
+            # Gradually increase snow height over time, up to half the screen height
+            snow_height = min(snow_height + 0.2, cfg.SCREENSIZE[1] // 2)
 
-        # Adjust the sleigh's vertical position based on snow height
-        player.top = cfg.SCREENSIZE[1] - custom_sleigh_size[1] - 10 - int(snow_height)
+            # Adjust the sleigh's vertical position based on snow height
+            player.top = cfg.SCREENSIZE[1] - custom_sleigh_size[1] - 10 - int(snow_height)
 
-        # Random item drop with specified frequency and ratio (4:2:1 for presents, snowballs, and snowmen)
-        if random.randint(1, 20) == 1:
-            candy_x = random.randint(0, cfg.SCREENSIZE[0] - cfg.CANDY_SIZE[0])
-            candy_type = random.choices(["present", "snowball", "snowman"], weights=[4, 2, 1], k=1)[0]
-            new_candy = pygame.Rect(candy_x, 0, *cfg.CANDY_SIZE)  # Spawn from the top of the screen
-            candies.append((new_candy, candy_type))
+            # Random item drop with specified frequency and ratio (4:2:1 for presents, snowballs, and snowmen)
+            if random.randint(1, 20) == 1:
+                candy_x = random.randint(0, cfg.SCREENSIZE[0] - cfg.CANDY_SIZE[0])
+                candy_type = random.choices(["present", "snowball", "snowman"], weights=[4, 2, 1], k=1)[0]
+                new_candy = pygame.Rect(candy_x, 0, *cfg.CANDY_SIZE)  # Spawn from the top of the screen
+                candies.append((new_candy, candy_type))
 
-        # Move candies and check for collision with player
-        for candy in list(candies):
-            candy[0].move_ip(0, candy_speed)
-            if candy[0].colliderect(player):  # Catch item
-                candies.remove(candy)
-                if candy[1] == "snowball":
-                    score -= 50  # Deduct points for catching a snowball
-                    snowball_sound.play()  # Play snowball sound effect
-                elif candy[1] == "snowman":
-                    freeze_end_time = time.time() + 5  # Freeze player for 5 seconds
-                    freeze_sound.play()  # Play freeze sound effect
-                    show_freeze_warning()  # Show freeze warning immediately
+            # Move candies and check for collision with player
+            for candy in list(candies):
+
+                # random candy and snowman move
+                if candy[1] == "snowman":
+                    speed_x = random.choice([-30,-20,-10, 0, 10, 20, 30])
                 else:
-                    score += 100  # Add points for catching a present
-                    present_sound.play()  # Play present sound effect
-            elif candy[0].top > cfg.SCREENSIZE[1]:  # Out of screen
-                candies.remove(candy)
+                    speed_x = random.choice([-5, 0, 5])
 
-        # Gradually increase candy speed
-        candy_speed += 0.01
+                candy[0].move_ip(speed_x, candy_speed)
+                if candy[0].colliderect(player):  # Catch item
+                    candies.remove(candy)
+                    if candy[1] == "snowball":
+                        score -= 50  # Deduct points for catching a snowball
+                        snowball_sound.play()  # Play snowball sound effect
+                    elif candy[1] == "snowman":
+                        freeze_end_time = time.time() + 5  # Freeze player for 5 seconds
+                        freeze_sound.play()  # Play freeze sound effect
+                        show_freeze_warning()  # Show freeze warning immediately
+                    else:
+                        score += 100  # Add points for catching a present
+                        present_sound.play()  # Play present sound effect
+                elif candy[0].top > cfg.SCREENSIZE[1]:  # Out of screen
+                    candies.remove(candy)
 
-        # Draw everything on the pygame surface
-        screen.blit(background_img, (0, 0))
+            # Gradually increase candy speed
+            candy_speed += 0.01
 
-        # Draw falling items
-        for candy in candies:
-            if candy[1] == "present":
-                screen.blit(present_img, candy[0].topleft)
-            elif candy[1] == "snowball":
-                screen.blit(snowball_img, candy[0].topleft)
-            elif candy[1] == "snowman":
-                screen.blit(snowman_img, candy[0].topleft)
+            # Draw everything on the pygame surface
+            screen.blit(background_img, (0, 0))
 
-        # Draw the snow background starting from the bottom, rising with `snow_height`
-        for y in range(cfg.SCREENSIZE[1] - int(snow_height), cfg.SCREENSIZE[1], snow_background_img.get_height()):
-            screen.blit(snow_background_img, (0, y))
+            # Draw falling items
+            for candy in candies:
+                if candy[1] == "present":
+                    screen.blit(present_img, candy[0].topleft)
+                elif candy[1] == "snowball":
+                    screen.blit(snowball_img, candy[0].topleft)
+                elif candy[1] == "snowman":
+                    screen.blit(snowman_img, candy[0].topleft)
 
-        # Draw the sleigh on top of the snow background
-        screen.blit(sleigh_img, player.topleft)
+            # Draw the snow background starting from the bottom, rising with `snow_height`
+            for y in range(cfg.SCREENSIZE[1] - int(snow_height), cfg.SCREENSIZE[1], snow_background_img.get_height()):
+                screen.blit(snow_background_img, (0, y))
 
-        # Display score and remaining time
-        score_text = font.render(f"Score: {score}", True, (255, 255, 255))
-        time_text = font.render(f"Time: {int(remaining_time)}", True, (255, 255, 255))
-        screen.blit(score_text, (10, 10))
-        screen.blit(time_text, (10, 50))
+            # Draw the sleigh on top of the snow background
+            screen.blit(sleigh_img, player.topleft)
+
+            # Display score and remaining time
+            score_text = font.render(f"Score: {score}", True, (255, 255, 255))
+            time_text = font.render(f"Time: {int(remaining_time)}", True, (255, 255, 255))
+            screen.blit(score_text, (10, 10))
+            screen.blit(time_text, (10, 50))
 
         # Render the pygame surface onto the tkinter canvas
         game_surface = pygame.image.tostring(screen, "RGB")
