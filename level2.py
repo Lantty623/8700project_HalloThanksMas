@@ -139,7 +139,14 @@ def level2_game(root, level_selection_screen):
 
         # Move candies and check for collision with player
         for c in list(candies):
-            c[0].move_ip(0, candy_speed)
+
+            # random candy and turkey move
+            if c[2] == "turkey":
+                speed_x = random.choice([-30,-20,-10, 0, 10, 20, 30])
+            else:
+                speed_x = random.choice([-5, 0, 5])
+
+            c[0].move_ip(speed_x, candy_speed)
             if c[0].colliderect(player):  # Catch object
                 candies.remove(c)
                 collected_items[c[2]] += 1  # Update collected count for the object type
