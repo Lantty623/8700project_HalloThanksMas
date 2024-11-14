@@ -34,6 +34,8 @@ def level3_game(root, level_selection_screen):
     # Load images
     background_img = pygame.image.load("assets/images/christmas_background.png")
     background_img = pygame.transform.scale(background_img, cfg.SCREENSIZE)
+    snow_background_img = pygame.image.load("assets/images/snow_background.png")
+    snow_background_img = pygame.transform.scale(snow_background_img, (cfg.SCREENSIZE[0], cfg.SCREENSIZE[1] // 4))
     sleigh_img = pygame.image.load("assets/images/sleigh.png")
     custom_sleigh_size = (int(cfg.PLAYER_SIZE[0] * 1.5), int(cfg.PLAYER_SIZE[1] * 0.5))
     sleigh_img = pygame.transform.scale(sleigh_img, custom_sleigh_size)
@@ -44,7 +46,7 @@ def level3_game(root, level_selection_screen):
     snowman_img = pygame.image.load("assets/images/snowman.png")
     snowman_img = pygame.transform.scale(snowman_img, cfg.CANDY_SIZE)
 
-    # Player setup in the middle bottom screen
+    # Initial position for the sleigh, set to move up as snow height increases
     player = pygame.Rect(
         (cfg.SCREENSIZE[0] // 2 - custom_sleigh_size[0] // 2,
          cfg.SCREENSIZE[1] - custom_sleigh_size[1] - 10),
@@ -61,6 +63,7 @@ def level3_game(root, level_selection_screen):
     freeze_end_time = 0  # Initialize freeze time to zero
     freeze_warning_popup = None  # Popup for freeze warning
     freeze_warning_shown = False  # Track if warning has been shown for current freeze
+    snow_height = 0  # Initial height of the snow accumulation
 
     # Key state tracking for movement
     keys_pressed = {"left": False, "right": False}
@@ -118,7 +121,7 @@ def level3_game(root, level_selection_screen):
 
     # Game loop function
     def game_loop():
-        nonlocal running, score, candy_speed, freeze_end_time, freeze_warning_shown
+        nonlocal running, score, candy_speed, freeze_end_time, freeze_warning_shown, snow_height
 
         # Check for time elapsed
         elapsed_time = time.time() - start_time
@@ -140,14 +143,20 @@ def level3_game(root, level_selection_screen):
             if not freeze_warning_shown:
                 show_freeze_warning()
 
-        # Ensure the player stays within screen bounds
-        player.clamp_ip(screen.get_rect())
+        # Ensure the player stays within screen bounds horizontally
+        player.clamp_ip(pygame.Rect(0, player.top, cfg.SCREENSIZE[0], player.height))
+
+        # Gradually increase snow height over time, up to half the screen height
+        snow_height = min(snow_height + 0.2, cfg.SCREENSIZE[1] // 2)
+
+        # Adjust the sleigh's vertical position based on snow height
+        player.top = cfg.SCREENSIZE[1] - custom_sleigh_size[1] - 10 - int(snow_height)
 
         # Random item drop with specified frequency and ratio (4:2:1 for presents, snowballs, and snowmen)
         if random.randint(1, 20) == 1:
             candy_x = random.randint(0, cfg.SCREENSIZE[0] - cfg.CANDY_SIZE[0])
             candy_type = random.choices(["present", "snowball", "snowman"], weights=[4, 2, 1], k=1)[0]
-            new_candy = pygame.Rect(candy_x, 0, *cfg.CANDY_SIZE)
+            new_candy = pygame.Rect(candy_x, 0, *cfg.CANDY_SIZE)  # Spawn from the top of the screen
             candies.append((new_candy, candy_type))
 
         # Move candies and check for collision with player
@@ -173,9 +182,8 @@ def level3_game(root, level_selection_screen):
 
         # Draw everything on the pygame surface
         screen.blit(background_img, (0, 0))
-        screen.blit(sleigh_img, player.topleft)
 
-        # Display items
+        # Draw falling items
         for candy in candies:
             if candy[1] == "present":
                 screen.blit(present_img, candy[0].topleft)
@@ -183,6 +191,13 @@ def level3_game(root, level_selection_screen):
                 screen.blit(snowball_img, candy[0].topleft)
             elif candy[1] == "snowman":
                 screen.blit(snowman_img, candy[0].topleft)
+
+        # Draw the snow background starting from the bottom, rising with `snow_height`
+        for y in range(cfg.SCREENSIZE[1] - int(snow_height), cfg.SCREENSIZE[1], snow_background_img.get_height()):
+            screen.blit(snow_background_img, (0, y))
+
+        # Draw the sleigh on top of the snow background
+        screen.blit(sleigh_img, player.topleft)
 
         # Display score and remaining time
         score_text = font.render(f"Score: {score}", True, (255, 255, 255))
