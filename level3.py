@@ -161,7 +161,14 @@ def level3_game(root, level_selection_screen):
 
         # Move candies and check for collision with player
         for candy in list(candies):
-            candy[0].move_ip(0, candy_speed)
+
+            # random candy and snowman move
+            if candy[1] == "snowman":
+                speed_x = random.choice([-30,-20,-10, 0, 10, 20, 30])
+            else:
+                speed_x = random.choice([-5, 0, 5])
+
+            candy[0].move_ip(speed_x, candy_speed)
             if candy[0].colliderect(player):  # Catch item
                 candies.remove(candy)
                 if candy[1] == "snowball":
