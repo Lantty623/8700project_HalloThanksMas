@@ -4,10 +4,26 @@ from level1 import level1_game
 from level2 import level2_game
 from level3 import level3_game
 
+class SingletonTkinter:
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            cls._instance = super(SingletonTkinter, cls).__new__(cls, *args, **kwargs)
+            cls._instance._initialized = False
+        return cls._instance
+
+    def __init__(self):
+        if self._initialized:
+            return
+        self._initialized = True
+        self.root = tk.Tk()
+        self.root.title("HalloThanksMas")
+        self.root.geometry("800x600")
+
 # Initialize the main window
-root = tk.Tk()
-root.title("HalloThanksMas")
-root.geometry("800x600")
+singleton_tk = SingletonTkinter()
+root = singleton_tk.root
 
 # Flashing effect and color setup
 flashing = True
@@ -36,7 +52,7 @@ def flash_text():
 def level_selection_screen():
     for widget in root.winfo_children():
         widget.destroy()
-    
+
     selection_screen = tk.Frame(root)
     selection_screen.pack(fill="both", expand=True, padx=20, pady=10)
 
