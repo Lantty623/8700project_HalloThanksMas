@@ -4,6 +4,7 @@ from tkinter import font
 from level1 import level1_game
 from level2 import level2_game
 from level3 import level3_game
+from direction import GameDirectionFactory  # Import the factory
 
 # Enhanced decorator for text styling and color
 def style_text(underline=True, color="black"):
@@ -131,7 +132,9 @@ def level_selection_screen():
             row, col = (0, 2) if i == 0 else (3, i)
             rowspan = 2 if i == 0 else 1
             level_label.grid(row=row, column=col, rowspan=rowspan, padx=10, pady=(5, 10), sticky="n")
-            level_label.bind("<Button-1>", lambda e, func=info["start_level"]: func(root, level_selection_screen))
+
+            # Bind to show directions before starting the game
+            level_label.bind("<Button-1>", lambda e, level=info: show_direction_screen(level))
 
             # Name Label below the image with specific color
             @style_text(underline=False, color=info["color"])
@@ -142,6 +145,34 @@ def level_selection_screen():
             name_label.grid(row=row + rowspan, column=col, padx=10, pady=(0, 20), sticky="n")
         except Exception as e:
             print(f"Error loading {info['name']} image: {e}")
+
+# --- Show Directions Screen ---
+def show_direction_screen(level):
+    """Display the direction screen for a selected level."""
+    for widget in root.winfo_children():
+        widget.destroy()
+
+    # Use the factory to get the appropriate directions
+    try:
+        direction_instance = GameDirectionFactory.create_direction(level["name"])
+        directions = direction_instance.get_directions()
+    except ValueError as e:
+        directions = str(e)
+
+    # Create a new screen for directions
+    direction_screen = tk.Frame(root)
+    direction_screen.pack(fill="both", expand=True, padx=20, pady=20)
+
+    # Display directions
+    direction_label = tk.Label(direction_screen, text=directions, font=("Helvetica", 14), justify="left", anchor="w")
+    direction_label.pack(fill="both", expand=True)
+
+    # Button to start the game
+    start_button = tk.Button(
+        direction_screen, text="Start Game", font=("Helvetica", 16, "bold"),
+        command=lambda: level["start_level"](root, level_selection_screen)
+    )
+    start_button.pack(pady=20)
 
 # --- Main Start Screen Setup ---
 start_screen = tk.Frame(root)
