@@ -4,9 +4,9 @@ from tkinter import font
 from level1 import level1_game
 from level2 import level2_game
 from level3 import level3_game
-from direction import GameDirectionFactory  # Import the factory
+from direction import GameDirectionFactory 
 
-# Enhanced decorator for text styling and color
+# Decorator for text modifying
 def style_text(underline=True, color="black"):
     def decorator(func):
         def wrapper(*args, **kwargs):
@@ -16,15 +16,16 @@ def style_text(underline=True, color="black"):
                 styled_font = font.Font(
                     family=current_font.actual("family"),
                     size=current_font.actual("size"),
-                    weight="bold",  # Make it bold
+                    weight="bold",  # Bold
                     slant="italic",  # Italicize
-                    underline=underline  # Optional underline
+                    underline=underline  # Underline
                 )
-                widget.configure(font=styled_font, fg=color)  # Set the font and color
+                widget.configure(font=styled_font, fg=color)  
             return widget
         return wrapper
     return decorator
 
+# Singleton to ensure only one game instance
 class SingletonTkinter:
     _instance = None
 
@@ -46,21 +47,23 @@ class SingletonTkinter:
 singleton_tk = SingletonTkinter()
 root = singleton_tk.root
 
-# Flashing effect and color setup
+# Flashing effect and color setup for the main screen
 flashing = True
 flash_job_id = None
 color_index = 0
 colors = ["orange", "yellow", "green"]
 
+# Function to start the game from the start screen
 def start_game(event=None):
     global flashing
     flashing = False
     if flash_job_id is not None:
         root.after_cancel(flash_job_id)
-    root.unbind("<Key>")  # Unbind the key event to prevent repeated triggering
+    root.unbind("<Key>")  
     start_screen.destroy()
     level_selection_screen()
 
+# Function to add flashing effect to the text on start screen
 def flash_text():
     global flash_job_id, color_index
     if flashing:
@@ -70,6 +73,7 @@ def flash_text():
         flash_job_id = root.after(500, flash_text)
 
 # --- Level Selection Screen ---
+# Player is able to pick what level they want here
 def level_selection_screen():
     for widget in root.winfo_children():
         widget.destroy()
@@ -79,31 +83,12 @@ def level_selection_screen():
 
     # Define level information
     level_info = [
-        {
-            "name": "Trick-or-treating",
-            "image_path": "assets/images/halloween_background.png",
-            "start_level": level1_game,
-            "color": "purple",
-        },
-        {
-            "name": "Harvesting Festival",
-            "image_path": "assets/images/thanksgiving_background.png",
-            "start_level": level2_game,
-            "color": "orange",
-        },
-        {
-            "name": "Santa's Present",
-            "image_path": "assets/images/christmas_background.png",
-            "start_level": level3_game,
-            "color": "green",
-        },
+        {"name": "Trick-or-treating", "image_path": "assets/images/halloween_background.png", "start_level": level1_game, "color": "purple"},
+        {"name": "Harvesting Festival", "image_path": "assets/images/thanksgiving_background.png", "start_level": level2_game, "color": "orange"},
+        {"name": "Santa's Present", "image_path": "assets/images/christmas_background.png", "start_level": level3_game, "color": "green"},
     ]
 
-    # Configure grid columns for alignment and spacing
-    selection_screen.grid_columnconfigure(0, weight=1)
-    selection_screen.grid_columnconfigure(3, weight=1)
-
-    # Title for level selection screen on the left, without underline
+    # Title for level selection screen on the left
     @style_text(underline=False)
     def create_title_label():
         return tk.Label(selection_screen, text="Select the Holiday\nGame you want to play", font=("Helvetica", 20), justify="right")
@@ -111,7 +96,7 @@ def level_selection_screen():
     title_label = create_title_label()
     title_label.grid(row=0, column=1, padx=(0, 20), sticky="e")
 
-    # Instructional description below the title, split into two lines
+    # Description of what to do below the title
     @style_text(underline=False)
     def create_description_label():
         return tk.Label(selection_screen, text="Click on the images to enter the game.\nThe difficulty increases from Halloween to Christmas", font=("Helvetica", 12), justify="right")
@@ -119,7 +104,7 @@ def level_selection_screen():
     description_label = create_description_label()
     description_label.grid(row=1, column=1, padx=(0, 20), sticky="e")
 
-    # Display Levels with Images and Names
+    # Display Levels with Game Images and Game Names
     for i, info in enumerate(level_info):
         try:
             # Load and resize level image
@@ -128,15 +113,15 @@ def level_selection_screen():
 
             # Image Label for each level
             level_label = tk.Label(selection_screen, image=level_photo)
-            level_label.image = level_photo  # Keep a reference
+            level_label.image = level_photo
             row, col = (0, 2) if i == 0 else (3, i)
             rowspan = 2 if i == 0 else 1
             level_label.grid(row=row, column=col, rowspan=rowspan, padx=10, pady=(5, 10), sticky="n")
 
-            # Bind to show directions before starting the game
+            # Show the instruction screen before starting the game
             level_label.bind("<Button-1>", lambda e, level=info: show_direction_screen(level))
 
-            # Name Label below the image with specific color
+            # Label below image with holiday color
             @style_text(underline=False, color=info["color"])
             def create_name_label():
                 return tk.Label(selection_screen, text=info["name"], font=("Helvetica", 14))
@@ -147,34 +132,80 @@ def level_selection_screen():
             print(f"Error loading {info['name']} image: {e}")
 
 # --- Show Directions Screen ---
+# Provide instructions on how to play the game
 def show_direction_screen(level):
-    """Display the direction screen for a selected level."""
     for widget in root.winfo_children():
         widget.destroy()
 
-    # Use the factory to get the appropriate directions
+    # Use the factory to get the directions for the level that was selected
     try:
         direction_instance = GameDirectionFactory.create_direction(level["name"])
-        directions = direction_instance.get_directions()
     except ValueError as e:
-        directions = str(e)
+        direction_instance = None
 
-    # Create a new screen for directions
+    # Create a new screen for the player to see the direction
     direction_screen = tk.Frame(root)
     direction_screen.pack(fill="both", expand=True, padx=20, pady=20)
 
-    # Display directions
-    direction_label = tk.Label(direction_screen, text=directions, font=("Helvetica", 14), justify="left", anchor="w")
-    direction_label.pack(fill="both", expand=True)
+    if direction_instance:
+        @style_text(color=level["color"])
+        def create_title_label():
+            return tk.Label(direction_screen, text=direction_instance.title, font=("Helvetica", 20, "bold"), anchor="center")
+
+        title_label = create_title_label()
+        title_label.pack(pady=(10, 20))
+
+        # Point Guide Section
+        point_guide_frame = tk.Frame(direction_screen, padx=10, pady=10)
+        point_guide_frame.pack(fill="x", anchor="w")
+
+        @style_text(color="black")
+        def create_point_guide_label():
+            return tk.Label(point_guide_frame, text="Point Guide:", font=("Helvetica", 14, "bold"), anchor="w")
+
+        point_guide_label = create_point_guide_label()
+        point_guide_label.pack(anchor="w", pady=(0, 5))
+
+        for image_path, description in direction_instance.point_guide:
+            item_frame = tk.Frame(point_guide_frame)
+            item_frame.pack(anchor="w", pady=2)
+            image = Image.open(image_path).resize((40, 40), Image.LANCZOS)
+            image_photo = ImageTk.PhotoImage(image)
+            item_image_label = tk.Label(item_frame, image=image_photo)
+            item_image_label.image = image_photo
+            item_image_label.pack(side="left", padx=(0, 10))
+
+            @style_text(color="black")
+            def create_item_description_label():
+                return tk.Label(item_frame, text=description, font=("Helvetica", 12), anchor="w")
+
+            item_description_label = create_item_description_label()
+            item_description_label.pack(side="left", anchor="w")
+
+        # Objectiuve of the game or goal
+        @style_text(color="black")
+        def create_section_label(section_name):
+            return tk.Label(direction_screen, text=section_name, font=("Helvetica", 14, "bold"), anchor="w")
+
+        objective_label = create_section_label("Objective:")
+        objective_label.pack(anchor="w", pady=(20, 5), padx=10)
+
+        objective_text = tk.Label(direction_screen, text=direction_instance.objective, font=("Helvetica", 12), anchor="w", justify="left", wraplength=750)
+        objective_text.pack(anchor="w", padx=20)
+
+        # The control that the player will be using
+        control_label = create_section_label("Control:")
+        control_label.pack(anchor="w", pady=(20, 5), padx=10)
+
+        control_text = tk.Label(direction_screen, text=direction_instance.control, font=("Helvetica", 12), anchor="w", justify="left", wraplength=750)
+        control_text.pack(anchor="w", padx=20)
 
     # Button to start the game
-    start_button = tk.Button(
-        direction_screen, text="Start Game", font=("Helvetica", 16, "bold"),
-        command=lambda: level["start_level"](root, level_selection_screen)
-    )
+    start_button = tk.Button(direction_screen, text="Start Game", font=("Helvetica", 16, "bold"), command=lambda: level["start_level"](root, level_selection_screen))
     start_button.pack(pady=20)
 
-# --- Main Start Screen Setup ---
+# --- Main Start Screen ---
+# What the player will see when game is executed
 start_screen = tk.Frame(root)
 start_screen.pack(fill="both", expand=True)
 
@@ -186,9 +217,7 @@ try:
     canvas.create_image(0, 0, anchor="nw", image=cover_photo)
     canvas.pack()
 
-    global instruction_text
     instruction_text = canvas.create_text(400, 570, text="Press any key to begin the game", font=("Helvetica", 18, "italic"), fill=colors[0])
-
     flash_text()
     root.bind("<Key>", start_game)
 

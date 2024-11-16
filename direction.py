@@ -1,88 +1,80 @@
-from abc import ABC, abstractmethod
-
-
-class GameDirection(ABC):
-    """Abstract base class for game directions."""
-
-    @abstractmethod
-    def get_directions(self):
-        """Provide directions for the game level."""
-        pass
-
-
-class TrickOrTreatingDirection(GameDirection):
-    """Directions for the Trick-or-treating level."""
+class GameDirection:
+    """Game direction instance template """
+    def __init__(self, title, point_guide, objective, control, title_color, images):
+        self.title = title
+        self.point_guide = point_guide
+        self.objective = objective
+        self.control = control
+        self.title_color = title_color
+        self.images = images
 
     def get_directions(self):
+        """It will return a formatted string of directions."""
         return (
-            "Welcome to Trick-or-treating!\n\n"
-            "Points Guide:\n"
-            "- Catch candies to earn points (+100).\n"
-            "- Avoid ghosts; they deduct points (-50).\n\n"
-            "Objective:\n"
-            "Move the pumpkin left or right to catch as many candies as possible "
-            "while avoiding ghosts.\n\n"
-            "Controls:\n"
-            "- Left Arrow: Move left\n"
-            "- Right Arrow: Move right\n"
-            "- Press 'P' to pause the game."
+            f"{self.title}\n\n"
+            f"Point Guide:\n{self.point_guide}\n\n"
+            f"Objective:\n{self.objective}\n\n"
+            f"Control:\n{self.control}"
         )
 
 
-class HarvestingFestivalDirection(GameDirection):
-    """Directions for the Harvesting Festival level."""
-
-    def get_directions(self):
-        return (
-            "Welcome to Harvesting Festival!\n\n"
-            "Points Guide:\n"
-            "- Collect items to complete combos and earn points.\n"
-            "- Each item has different points:\n"
-            "  * Turkey: +100\n"
-            "  * Pie: +50\n"
-            "  * Mashed Potatoes: +150\n\n"
-            "Objective:\n"
-            "Complete the required combo sets to maximize your score.\n\n"
-            "Controls:\n"
-            "- Left Arrow: Move left\n"
-            "- Right Arrow: Move right\n"
-            "- Press 'P' to pause the game."
+class HalloweenDirection(GameDirection):
+    def __init__(self):
+        super().__init__(
+            title="Halloween: Trick-or-Treating",
+            point_guide=[
+                ("assets/images/candy.png", "+100 points"),
+                ("assets/images/ghost.png", "-50 points")
+            ],
+            objective="Collect as many candies as you can while avoiding ghosts!",
+            control="Use the Left and Right arrow keys to move. Press 'P' to pause and press 'P' again to continue",
+            title_color="purple",
+            images=["assets/images/candy.png", "assets/images/ghost.png"]
         )
 
 
-class SantasPresentDirection(GameDirection):
-    """Directions for the Santa's Present level."""
+class ThanksgivingDirection(GameDirection):
+    def __init__(self):
+        super().__init__(
+            title="Thanksgiving: Harvesting Festival",
+            point_guide=[
+                ("assets/images/turkey.png", "+100 points"),
+                ("assets/images/pie.png", "+50 points"),
+                ("assets/images/mash.png", "+150 points")
+            ],
+            objective="Complete food sets by collecting required items.",
+            control="Use the Left and Right arrow keys to move. Press 'P' to pause and press 'P' again to continue",
+            title_color="orange",
+            images=["assets/images/turkey.png", "assets/images/pie.png", "assets/images/mash.png"]
+        )
 
-    def get_directions(self):
-        return (
-            "Welcome to Santa's Present!\n\n"
-            "Points Guide:\n"
-            "- Catch presents to earn points (+100).\n"
-            "- Avoid snowballs; they deduct points (-50).\n"
-            "- Snowmen freeze you temporarily, so avoid them!\n\n"
-            "Objective:\n"
-            "Move the sleigh left or right to catch as many presents as possible "
-            "while avoiding obstacles.\n\n"
-            "Controls:\n"
-            "- Left Arrow: Move left\n"
-            "- Right Arrow: Move right\n"
-            "- Press 'P' to pause the game."
+
+class ChristmasDirection(GameDirection):
+    def __init__(self):
+        super().__init__(
+            title="Christmas: Santa's Present",
+            point_guide=[
+                ("assets/images/present.png", "+100 points"),
+                ("assets/images/snowball.png", "-50 points"),
+                ("assets/images/snowman.png", "Freezes you for 5 seconds")
+            ],
+            objective="Catch presents while avoiding snowballs and snowmen.",
+            control="Use the Left and Right arrow keys to move. Press 'P' to pause and press 'P' again to continue",
+            title_color="green",
+            images=["assets/images/present.png", "assets/images/snowball.png", "assets/images/snowman.png"]
         )
 
 
 class GameDirectionFactory:
-    """Factory for creating game direction instances."""
-
+    """Factory method for creating game directions."""
     @staticmethod
     def create_direction(level_name):
-        """Create a direction instance based on the level name."""
-        directions_map = {
-            "Trick-or-treating": TrickOrTreatingDirection,
-            "Harvesting Festival": HarvestingFestivalDirection,
-            "Santa's Present": SantasPresentDirection,
-        }
-        direction_class = directions_map.get(level_name)
-        if direction_class:
-            return direction_class()
+        """It will return the necessary game direction depending on what level is provided"""
+        if level_name == "Trick-or-treating":
+            return HalloweenDirection()
+        elif level_name == "Harvesting Festival":
+            return ThanksgivingDirection()
+        elif level_name == "Santa's Present":
+            return ChristmasDirection()
         else:
-            raise ValueError(f"No directions available for level: {level_name}")
+            raise ValueError(f"Unknown level name: {level_name}")
