@@ -1,6 +1,6 @@
 # CPSC 8700 Project - HalloThanksMas
 
-**HalloThanksMas** is a holiday-themed catching game built in Python. The game consists of three levels, each representing a different holiday theme: Halloween, Thanksgiving, and Christmas. Each level features a unique design for the catching container, items to catch, and increasing levels of difficulty.
+**HalloThanksMas** is a holiday-themed catching game built in Python. The game consists of three levels, each representing a different holiday theme: Halloween, Thanksgiving, and Christmas. Each level has its own objective, point system, and fun graphics. Players can enjoy the game while learning to manage objectives, dodge obstacles, and score high!
 
 ## Overview
 
@@ -9,13 +9,9 @@ This game is part of the CPSC 8700 Software Design course project. Students were
 ## Game Details
 
 - **Levels**: The game has three levels:
-  - **Level 1**: Halloween-themed - Features a spooky background and requires the player to catch candy for points, but watch out! Catching ghosts will reduce the score. Sound effects for item catches and themed background music add to the Halloween atmosphere.
-  - **Level 2**: Thanksgiving-themed - Adds a unique combo-based scoring system where players need to collect a set of themed items (turkey, pie, mash). Each completed set contributes to the score based on item-specific points (e.g., turkey: 100, pie: 50, mash: 150). Players receive sound feedback for item catches and completed sets, alongside
-  - **Level 3**: Christmas-themed - To be continued...
-- Each level includes:
-  - A uniquely designed catching container
-  - Themed items to catch
-  - Increasing levels of difficulty in catching items
+  - **Level 1**: Trick-or-Treating - Collect the falling candy into your pumpkin basket to gain points, but watch out! Catching ghosts will reduce the score. 
+  - **Level 2**: Harvesting Festival - Gather food items to complete different Thanksgiving dinner combination set to earn different points, but watch out! The turkey might fly somewhere else.
+  - **Level 3**: Santa's Present - Catch the present that is rain from the sky, but watch out! Snow will slowly build up from the ground as time pass. Please dodge those snowball and snowman. 
 
 ## Project Requirements
 
@@ -34,11 +30,16 @@ The objective of the project is to design a simple game that combines all three 
 To run the **HalloThanksMas Game**, you need to have the following dependencies installed on your system:
 
 **Required:**
-- **Python**: Version 3.7 or higher
+- **Python**: Version 3.8 or higher
 - **Pygame**: For game development and graphics
   - Install using:
     ```bash
     pip install pygame
+    ```
+- **Pillow**: For image handling
+  - Install using:
+    ```bash
+    pip install pillow
     ```
 - **Tkinter**: Used for graphical user interface elements
   - On Linux, you may need to install it using:
