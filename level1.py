@@ -4,6 +4,7 @@ import pygame
 import time
 from PIL import Image, ImageTk
 import cfg
+import scoreboard
 
 def level1_game(root, level_selection_screen):
     # Clear the current window
@@ -162,6 +163,19 @@ def show_final_score(root, score, level_selection_screen):
 
     # Display final score message
     tk.Label(root, text=f"Game Over! Your Score: {score}", font=("Arial", 24, "bold")).pack(pady=50)
+
+    # update scoreboard
+    # player_name = input("Enter your name: ")
+    scoreboard.add_score("level1", "testtt1", score)
+
+    # add a "show scoreboard" button
+    show_scoreboard_button = tk.Button(
+        root,
+        text = "Show Scoreboard",
+        font=("Arial", 16),
+        command=lambda: scoreboard.display_scoreboard("level1")
+    )
+    show_scoreboard_button.pack(pady=20)
 
     # Display the return icon
     try:
