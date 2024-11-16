@@ -5,6 +5,7 @@ import time
 from PIL import Image, ImageTk
 import cfg
 import scoreboard
+from memento import Memento, Caretaker
 
 def level1_game(root, level_selection_screen):
     # Clear the current window
@@ -14,13 +15,13 @@ def level1_game(root, level_selection_screen):
     # Initialize Pygame and Pygame Mixer for sound
     pygame.init()
     pygame.mixer.init()
-    
+
     # Load sounds
     try:
         pygame.mixer.music.load("assets/sounds/halloween_background.mp3")
         pygame.mixer.music.set_volume(0.5)  # Adjust volume as needed
         pygame.mixer.music.play(-1)  # Play background music in a loop
-        
+
         candy_sound = pygame.mixer.Sound("assets/sounds/candy_sound.mp3")
         ghost_sound = pygame.mixer.Sound("assets/sounds/ghost_sound.mp3")
         candy_sound.set_volume(0.7)  # Adjust volume as needed
@@ -46,7 +47,7 @@ def level1_game(root, level_selection_screen):
     ghost_img = pygame.image.load("assets/images/ghost.png")
     ghost_img = pygame.transform.scale(ghost_img, cfg.CANDY_SIZE)
 
-    # player in middle bottom screen
+    # Player setup
     player = pygame.Rect(
         (cfg.SCREENSIZE[0] // 2 - cfg.PLAYER_SIZE[0] // 2,
         cfg.SCREENSIZE[1] - cfg.PLAYER_SIZE[1] - 10),
@@ -63,12 +64,17 @@ def level1_game(root, level_selection_screen):
     # Key state tracking for movement
     keys_pressed = {"left": False, "right": False}
 
+    # Game state
+    game_state = {"paused": False}
+
     # Define functions to handle key events
     def on_key_press(event):
         if event.keysym == "Left":
             keys_pressed["left"] = True
         elif event.keysym == "Right":
             keys_pressed["right"] = True
+        elif event.keysym == "p":  # Pause game on 'p' key press
+            game_state["paused"] = not game_state["paused"]
 
     def on_key_release(event):
         if event.keysym == "Left":
@@ -84,59 +90,60 @@ def level1_game(root, level_selection_screen):
     def game_loop():
         nonlocal running, score
 
-        # Check for time elapsed
-        elapsed_time = time.time() - start_time
-        remaining_time = cfg.GAME_DURATION - elapsed_time
+        if not game_state["paused"]:
+            # Check for time elapsed
+            elapsed_time = time.time() - start_time
+            remaining_time = cfg.GAME_DURATION - elapsed_time
 
-        if remaining_time <= 0:
-            running = False  # End the game if time is up
+            if remaining_time <= 0:
+                running = False  # End the game if time is up
 
-        # Handle player movement based on key presses
-        if keys_pressed["left"]:
-            player.move_ip(-cfg.PLAYER_SPEED, 0)
-        if keys_pressed["right"]:
-            player.move_ip(cfg.PLAYER_SPEED, 0)
+            # Handle player movement based on key presses
+            if keys_pressed["left"]:
+                player.move_ip(-cfg.PLAYER_SPEED, 0)
+            if keys_pressed["right"]:
+                player.move_ip(cfg.PLAYER_SPEED, 0)
 
-        # Ensure the player stays within screen bounds
-        player.clamp_ip(screen.get_rect())
+            # Ensure the player stays within screen bounds
+            player.clamp_ip(screen.get_rect())
 
-        # Random candy/ghost drop
-        if random.randint(1, 20) == 1:
-            candy_x = random.randint(0, cfg.SCREENSIZE[0] - cfg.CANDY_SIZE[0])
-            new_candy = pygame.Rect(candy_x, 0, *cfg.CANDY_SIZE)
-            candy_type = random.choice(["candy", "ghost"])
-            candies.append((new_candy, candy_type))
+            # Random candy/ghost drop
+            if random.randint(1, 20) == 1:
+                candy_x = random.randint(0, cfg.SCREENSIZE[0] - cfg.CANDY_SIZE[0])
+                new_candy = pygame.Rect(candy_x, 0, *cfg.CANDY_SIZE)
+                candy_type = random.choice(["candy", "ghost"])
+                candies.append((new_candy, candy_type))
 
-        # Move candies and check for collision with player
-        for c in list(candies):
-            c[0].move_ip(0, cfg.CANDY_SPEED)
-            if c[0].colliderect(player):  # Catch item
-                candies.remove(c)
+            # Move candies and check for collision with player
+            for c in list(candies):
+                c[0].move_ip(0, cfg.CANDY_SPEED)
+                if c[0].colliderect(player):  # Catch item
+                    candies.remove(c)
+                    if c[1] == "candy":
+                        score += 100  # Add points for candy
+                        candy_sound.play()  # Play candy sound
+                    elif c[1] == "ghost":
+                        score -= 50  # Deduct points for ghost
+                        ghost_sound.play()  # Play ghost sound
+                elif c[0].top > cfg.SCREENSIZE[1]:  # Out of screen
+                    candies.remove(c)
+
+            # Draw everything on the pygame surface
+            screen.blit(background_img, (0, 0))
+            screen.blit(pumpkin_img, player.topleft)
+
+            # Display candies and ghosts
+            for c in candies:
                 if c[1] == "candy":
-                    score += 100  # Add points for candy
-                    candy_sound.play()  # Play candy sound
-                elif c[1] == "ghost":
-                    score -= 50  # Deduct points for ghost
-                    ghost_sound.play()  # Play ghost sound
-            elif c[0].top > cfg.SCREENSIZE[1]:  # Out of screen
-                candies.remove(c)
+                    screen.blit(candy_img, c[0].topleft)
+                else:
+                    screen.blit(ghost_img, c[0].topleft)
 
-        # Draw everything on the pygame surface
-        screen.blit(background_img, (0, 0))
-        screen.blit(pumpkin_img, player.topleft)
-
-        # Display candies and ghosts
-        for c in candies:
-            if c[1] == "candy":
-                screen.blit(candy_img, c[0].topleft)
-            else:
-                screen.blit(ghost_img, c[0].topleft)
-
-        # Display score and remaining time
-        score_text = font.render(f"Score: {score}", True, (255, 255, 255))
-        time_text = font.render(f"Time: {int(remaining_time)}", True, (255, 255, 255))
-        screen.blit(score_text, (10, 10))
-        screen.blit(time_text, (10, 50))
+            # Display score and remaining time
+            score_text = font.render(f"Score: {score}", True, (255, 255, 255))
+            time_text = font.render(f"Time: {int(remaining_time)}", True, (255, 255, 255))
+            screen.blit(score_text, (10, 10))
+            screen.blit(time_text, (10, 50))
 
         # Render the pygame surface onto the tkinter canvas
         game_surface = pygame.image.tostring(screen, "RGB")
