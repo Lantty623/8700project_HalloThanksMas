@@ -52,7 +52,7 @@ def display_scoreboard(level):
     frame.pack(pady=10)
 
     for i, entry in enumerate(scores[:10], 1):  # only show top 10
-        rank_label = tk.Label(frame, text=f"{i}. {entry['name']} - {entry['score']}", font=("Arial", 14))
+        rank_label = tk.Label(frame, text=f"{i}. {entry['name']}    {entry['score']}", font=("Arial", 14))
         rank_label.pack(anchor="w")
 
     # close button

@@ -157,13 +157,44 @@ def level1_game(root, level_selection_screen):
         else:
             pygame.mixer.music.stop()  # Stop background music when the game ends
             pygame.quit()
-            show_final_score(root, score, level_selection_screen)
+            ask_player_name(root, score, level_selection_screen)
 
     # Run the game loop
     running = True
     game_loop()
 
-def show_final_score(root, score, level_selection_screen):
+
+def ask_player_name(root, score, level_select_screen):
+    # clear screen
+    for widget in root.winfo_children():
+        widget.destroy()
+
+    # Display final score message
+    tk.Label(root, text=f"Game Over! Your Score: {score}", font=("Arial", 24, "bold")).pack(pady=50)
+
+    tk.Label(root, text="Enter Your Name", font=("Arial", 20, "bold")).pack(pady=50)
+
+    # input
+    name_input = tk.StringVar()
+    name_entry = tk.Entry(root, textvariable = name_input, font=("Arial", 16), justify="center")
+    name_entry.pack(pady=20)
+
+    # error label
+    error_label = tk.Label(root, text="", font=("Arial", 12), fg="red")
+    error_label.pack()
+
+    # confirm button
+    def confirm_button():
+        player_name = name_input.get().strip()
+        if player_name:
+            show_final_score(root, player_name, score, level_select_screen)
+        else:
+            error_label.config(text="Name cannot be empty!")
+
+    tk.Button(root,text="Confirm", font=("Arial", 16), command= confirm_button).pack(pady=20)
+
+
+def show_final_score(root,player_name,  score, level_selection_screen):
     # Clear screen and display final score
     for widget in root.winfo_children():
         widget.destroy()
@@ -173,7 +204,7 @@ def show_final_score(root, score, level_selection_screen):
 
     # update scoreboard
     # player_name = input("Enter your name: ")
-    scoreboard.add_score("level1", "testtt1", score)
+    scoreboard.add_score("level1", player_name, score)
 
     # add a "show scoreboard" button
     show_scoreboard_button = tk.Button(

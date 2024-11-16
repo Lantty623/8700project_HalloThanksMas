@@ -5,6 +5,7 @@ import time
 from PIL import Image, ImageTk
 import cfg
 from memento import Memento, Caretaker
+import scoreboard
 
 def level3_game(root, level_selection_screen):
     # Clear the current window
@@ -263,19 +264,63 @@ def level3_game(root, level_selection_screen):
             pygame.quit()
             if pygame.mixer.get_init():  # Only stop music if mixer is initialized
                 pygame.mixer.music.stop()  # Stop background music
-            show_final_score(root, score, level_selection_screen)
+            ask_player_name(root, score, level_selection_screen)
 
     # Run the game loop
     running = True
     game_loop()
 
-def show_final_score(root, score, level_selection_screen):
+
+def ask_player_name(root, score, level_select_screen):
+    # clear screen
+    for widget in root.winfo_children():
+        widget.destroy()
+
+    # Display final score message
+    tk.Label(root, text=f"Game Over! Your Score: {score}", font=("Arial", 24, "bold")).pack(pady=50)
+
+    tk.Label(root, text="Enter Your Name", font=("Arial", 20, "bold")).pack(pady=50)
+
+    # input
+    name_input = tk.StringVar()
+    name_entry = tk.Entry(root, textvariable = name_input, font=("Arial", 16), justify="center")
+    name_entry.pack(pady=20)
+
+    # error label
+    error_label = tk.Label(root, text="", font=("Arial", 12), fg="red")
+    error_label.pack()
+
+    # confirm button
+    def confirm_button():
+        player_name = name_input.get().strip()
+        if player_name:
+            show_final_score(root, player_name, score, level_select_screen)
+        else:
+            error_label.config(text="Name cannot be empty!")
+
+    tk.Button(root,text="Confirm", font=("Arial", 16), command= confirm_button).pack(pady=20)
+
+
+def show_final_score(root,player_name,  score, level_selection_screen):
     # Clear screen and display final score
     for widget in root.winfo_children():
         widget.destroy()
 
     # Display final score message
     tk.Label(root, text=f"Game Over! Your Score: {score}", font=("Arial", 24, "bold")).pack(pady=50)
+
+    # update scoreboard
+    # player_name = input("Enter your name: ")
+    scoreboard.add_score("level3", player_name, score)
+
+    # add a "show scoreboard" button
+    show_scoreboard_button = tk.Button(
+        root,
+        text = "Show Scoreboard",
+        font=("Arial", 16),
+        command=lambda: scoreboard.display_scoreboard("level3")
+    )
+    show_scoreboard_button.pack(pady=20)
 
     # Display the return icon
     try:
@@ -293,3 +338,6 @@ def show_final_score(root, score, level_selection_screen):
 
     except Exception as e:
         print("Return icon not found:", e)
+
+
+
