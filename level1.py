@@ -227,8 +227,8 @@ def show_final_score(root, player_name, score, level_selection_screen):
     for widget in root.winfo_children():
         widget.destroy()
 
-    # Load the background image
-    background_image_path = "assets/images/halloween_background.png"  # Use the appropriate path
+    # Load the background image for the final score screen
+    background_image_path = "assets/images/halloween_background.png"
     background_image = Image.open(background_image_path)
     background_image = background_image.resize((800, 600), Image.LANCZOS)
     background_photo = ImageTk.PhotoImage(background_image)
@@ -253,17 +253,16 @@ def show_final_score(root, player_name, score, level_selection_screen):
         font=("Helvetica", 20, "italic"), fill="orange"
     )
 
-    # update scoreboard
-    # player_name = input("Enter your name: ")
+    # Update the scoreboard with the player's score
     scoreboard.add_score("level1", player_name, score)
 
-    # Add a "Show Scoreboard" button
+    # Add a "Show Scoreboard" button with the custom background image
     show_scoreboard_button = tk.Button(
         root,
         text="Show Current Scoreboard",
         font=("Helvetica", 16, "bold"),
         fg="orange",
-        command=lambda: scoreboard.display_scoreboard("level1")
+        command=lambda: scoreboard.display_scoreboard("level1", "assets/images/h_score.png")  # Pass the background image path
     )
     canvas.create_window(400, 250, anchor="center", window=show_scoreboard_button)
 

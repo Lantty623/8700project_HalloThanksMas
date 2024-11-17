@@ -333,8 +333,8 @@ def show_final_score(root, player_name, score, level_selection_screen):
     for widget in root.winfo_children():
         widget.destroy()
 
-    # Load the background image
-    background_image_path = "assets/images/christmas_background.png"  # Use the appropriate path
+    # Load the background image for the final score screen
+    background_image_path = "assets/images/christmas_background.png"
     background_image = Image.open(background_image_path)
     background_image = background_image.resize((800, 600), Image.LANCZOS)
     background_photo = ImageTk.PhotoImage(background_image)
@@ -356,20 +356,19 @@ def show_final_score(root, player_name, score, level_selection_screen):
     # Display the player's name
     canvas.create_text(
         400, 150, text=f"Congratulations, {player_name}!",
-        font=("Helvetica", 20, "italic"), fill="Green"
+        font=("Helvetica", 20, "italic"), fill="red"
     )
 
-    # update scoreboard
-    # player_name = input("Enter your name: ")
+    # Update the scoreboard with the player's score
     scoreboard.add_score("level3", player_name, score)
 
-    # Add a "Show Scoreboard" button
+    # Add a "Show Scoreboard" button with the custom background image
     show_scoreboard_button = tk.Button(
         root,
         text="Show Current Scoreboard",
         font=("Helvetica", 16, "bold"),
         fg="green",
-        command=lambda: scoreboard.display_scoreboard("level3")
+        command=lambda: scoreboard.display_scoreboard("level3", "assets/images/c_score.png")  # Pass the background image path
     )
     canvas.create_window(400, 250, anchor="center", window=show_scoreboard_button)
 
@@ -383,7 +382,7 @@ def show_final_score(root, player_name, score, level_selection_screen):
         return_label = tk.Label(
             root,
             image=return_icon,
-            bg="#003153",  # Match the canvas background to blend
+            bg="black",  # Match the canvas background to blend
             borderwidth=0  # Remove border for a cleaner look
         )
         return_label.image = return_icon  # Keep a reference to avoid garbage collection
