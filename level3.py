@@ -264,33 +264,56 @@ def level3_game(root, level_selection_screen):
             pygame.quit()
             if pygame.mixer.get_init():  # Only stop music if mixer is initialized
                 pygame.mixer.music.stop()  # Stop background music
-            ask_player_name(root, score, level_selection_screen)
+            ask_player_name(root, score, level_selection_screen,"assets/images/christmas_background.png")
 
     # Run the game loop
     running = True
     game_loop()
 
 
-def ask_player_name(root, score, level_select_screen):
-    # clear screen
+def ask_player_name(root, score, level_select_screen, background_image):
+    # Clear the screen
     for widget in root.winfo_children():
         widget.destroy()
 
+    # Load the background image
+    background_image = Image.open(background_image)
+    background_image = background_image.resize((800, 600), Image.LANCZOS)
+    background_photo = ImageTk.PhotoImage(background_image)
+
+    # Create a canvas to hold the background
+    canvas = tk.Canvas(root, width=800, height=600)
+    canvas.pack(fill="both", expand=True)
+    canvas.create_image(0, 0, anchor="nw", image=background_photo)
+
+    # Keep a reference to avoid garbage collection
+    canvas.image = background_photo
+
     # Display final score message
-    tk.Label(root, text=f"Game Over! Your Score: {score}", font=("Arial", 24, "bold")).pack(pady=50)
+    canvas.create_text(
+        400, 100, text=f"Game Over! Your Score: {score}",
+        font=("Helvetica", 24, "bold"), fill="Green"
+    )
 
-    tk.Label(root, text="Enter Your Name", font=("Arial", 20, "bold")).pack(pady=50)
+    canvas.create_text(
+        400, 180, text="Enter Your Name Below",
+        font=("Helvetica", 20, "italic"), fill="Green"
+    )
 
-    # input
+    # Name entry
     name_input = tk.StringVar()
-    name_entry = tk.Entry(root, textvariable = name_input, font=("Arial", 16), justify="center")
-    name_entry.pack(pady=20)
+    name_entry = tk.Entry(
+        root, textvariable=name_input,
+        font=("Helvetica", 16), justify="center",
+        highlightthickness=4, highlightbackground="green"
+    )
+    name_entry_window = canvas.create_window(400, 230, anchor="center", window=name_entry)
 
-    # error label
-    error_label = tk.Label(root, text="", font=("Arial", 12), fg="red")
-    error_label.pack()
+    # Error label
+    error_label = tk.Label(root, text="", font=("Helvetica", 12), fg="white", bg="#003153")
+    error_label_window = canvas.create_window(400, 270, anchor="center", window=error_label)
 
-    # confirm button
+    # Confirm button
     def confirm_button():
         player_name = name_input.get().strip()
         if player_name:
@@ -298,46 +321,76 @@ def ask_player_name(root, score, level_select_screen):
         else:
             error_label.config(text="Name cannot be empty!")
 
-    tk.Button(root,text="Confirm", font=("Arial", 16), command= confirm_button).pack(pady=20)
+    confirm_button_widget = tk.Button(
+        root, text="Confirm", font=("Helvetica", 16, "bold"),
+        bg="white", fg="green", command=confirm_button
+    )
+    canvas.create_window(400, 330, anchor="center", window=confirm_button_widget)
 
 
-def show_final_score(root,player_name,  score, level_selection_screen):
-    # Clear screen and display final score
+def show_final_score(root, player_name, score, level_selection_screen):
+    # Clear the screen
     for widget in root.winfo_children():
         widget.destroy()
 
+    # Load the background image
+    background_image_path = "assets/images/christmas_background.png"  # Use the appropriate path
+    background_image = Image.open(background_image_path)
+    background_image = background_image.resize((800, 600), Image.LANCZOS)
+    background_photo = ImageTk.PhotoImage(background_image)
+
+    # Create a canvas to hold the background
+    canvas = tk.Canvas(root, width=800, height=600)
+    canvas.pack(fill="both", expand=True)
+    canvas.create_image(0, 0, anchor="nw", image=background_photo)
+
+    # Keep a reference to avoid garbage collection
+    canvas.image = background_photo
+
     # Display final score message
-    tk.Label(root, text=f"Game Over! Your Score: {score}", font=("Arial", 24, "bold")).pack(pady=50)
+    canvas.create_text(
+        400, 100, text=f"Game Over! Your Score: {score}",
+        font=("Helvetica", 24, "bold"), fill="green"
+    )
+
+    # Display the player's name
+    canvas.create_text(
+        400, 150, text=f"Congratulations, {player_name}!",
+        font=("Helvetica", 20, "italic"), fill="Green"
+    )
 
     # update scoreboard
     # player_name = input("Enter your name: ")
     scoreboard.add_score("level3", player_name, score)
 
-    # add a "show scoreboard" button
+    # Add a "Show Scoreboard" button
     show_scoreboard_button = tk.Button(
         root,
-        text = "Show Scoreboard",
-        font=("Arial", 16),
+        text="Show Current Scoreboard",
+        font=("Helvetica", 16, "bold"),
+        fg="green",
         command=lambda: scoreboard.display_scoreboard("level3")
     )
-    show_scoreboard_button.pack(pady=20)
+    canvas.create_window(400, 250, anchor="center", window=show_scoreboard_button)
 
-    # Display the return icon
+    # Add a return button to go back to the level selection screen
     try:
         return_img = Image.open("assets/images/return_icon.png")
         return_img = return_img.resize((80, 80), Image.LANCZOS)
         return_icon = ImageTk.PhotoImage(return_img)
 
-        # Create a label with the return icon, placed in the center below the score
-        return_label = tk.Label(root, image=return_icon)
+        # Create a label with the return icon
+        return_label = tk.Label(
+            root,
+            image=return_icon,
+            bg="#003153",  # Match the canvas background to blend
+            borderwidth=0  # Remove border for a cleaner look
+        )
         return_label.image = return_icon  # Keep a reference to avoid garbage collection
-        return_label.pack(pady=20)
-
+        return_label_window = canvas.create_window(
+            400, 350, anchor="center", window=return_label
+        )
         # Bind the click event to return to level selection
         return_label.bind("<Button-1>", lambda e: level_selection_screen())
-
     except Exception as e:
         print("Return icon not found:", e)
-
-
-
