@@ -46,6 +46,16 @@ To run the **HalloThanksMas Game**, you need to have the following dependencies 
     ```bash
     sudo apt-get install python3-tk
     ```
+- **qtawesome**: For icons and styling.
+  - Install using:
+    ```bash
+    pip install qtawesome
+    ```
+- **PyQt5** (or **PySide6**): Required for `qtpy` to provide Qt bindings.
+  - Install using:
+    ```bash
+    pip install PyQt5
+    ```
 
 Ensure these dependencies are correctly installed before running the game.
 
