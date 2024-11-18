@@ -150,7 +150,7 @@ def show_direction_screen(level):
     if direction_instance:
         @style_text(color=level["color"])
         def create_title_label():
-            return tk.Label(direction_screen, text=direction_instance.title, font=("Helvetica", 20, "bold"), anchor="center")
+            return tk.Label(direction_screen, text=direction_instance.title, font=("Helvetica", 25, "bold"), anchor="center")
 
         title_label = create_title_label()
         title_label.pack(pady=(10, 20))
@@ -161,7 +161,7 @@ def show_direction_screen(level):
 
         @style_text(color="black")
         def create_point_guide_label():
-            return tk.Label(point_guide_frame, text="Point Guide:", font=("Helvetica", 14, "bold"), anchor="w")
+            return tk.Label(point_guide_frame, text="Point Guide:", font=("Helvetica", 20, "bold"), anchor="w")
 
         point_guide_label = create_point_guide_label()
         point_guide_label.pack(anchor="w", pady=(0, 5))
@@ -177,7 +177,7 @@ def show_direction_screen(level):
 
             @style_text(color="black")
             def create_item_description_label():
-                return tk.Label(item_frame, text=description, font=("Helvetica", 12), anchor="w")
+                return tk.Label(item_frame, text=description, font=("Helvetica", 20), anchor="w")
 
             item_description_label = create_item_description_label()
             item_description_label.pack(side="left", anchor="w")
@@ -185,19 +185,19 @@ def show_direction_screen(level):
         # Objectiuve of the game or goal
         @style_text(color="black")
         def create_section_label(section_name):
-            return tk.Label(direction_screen, text=section_name, font=("Helvetica", 14, "bold"), anchor="w")
+            return tk.Label(direction_screen, text=section_name, font=("Helvetica", 18, "bold"), anchor="w")
 
         objective_label = create_section_label("Objective:")
         objective_label.pack(anchor="w", pady=(20, 5), padx=10)
 
-        objective_text = tk.Label(direction_screen, text=direction_instance.objective, font=("Helvetica", 12), anchor="w", justify="left", wraplength=750)
+        objective_text = tk.Label(direction_screen, text=direction_instance.objective, font=("Helvetica", 16), anchor="w", justify="left", wraplength=750)
         objective_text.pack(anchor="w", padx=20)
 
         # The control that the player will be using
         control_label = create_section_label("Control:")
         control_label.pack(anchor="w", pady=(20, 5), padx=10)
 
-        control_text = tk.Label(direction_screen, text=direction_instance.control, font=("Helvetica", 12), anchor="w", justify="left", wraplength=750)
+        control_text = tk.Label(direction_screen, text=direction_instance.control, font=("Helvetica", 16), anchor="w", justify="left", wraplength=750)
         control_text.pack(anchor="w", padx=20)
 
     # Button to start the game

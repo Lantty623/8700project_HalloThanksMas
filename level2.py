@@ -77,6 +77,9 @@ def level2_game(root, level_selection_screen):
     # Game state
     game_state = {"paused": False}
 
+    # Memento caretaker
+    caretaker = Caretaker()
+
     # Define functions to handle key events
     def on_key_press(event):
         if event.keysym == "Left":
@@ -85,6 +88,26 @@ def level2_game(root, level_selection_screen):
             keys_pressed["right"] = True
         elif event.keysym == "p":  # Pause game on 'p' key press
             game_state["paused"] = not game_state["paused"]
+            if game_state["paused"]:
+                caretaker.save_state(Memento({
+                    "player": player,
+                    "candies": candies,
+                    "score": score,
+                    "start_time": start_time,
+                    "keys_pressed": keys_pressed,
+                    "collected_items": collected_items,
+                    "combo_requirements": combo_requirements
+                }))
+            else:
+                saved_state = caretaker.load_state()
+                if saved_state:
+                    player.update(saved_state["player"])
+                    candies = saved_state["candies"]
+                    score = saved_state["score"]
+                    start_time = saved_state["start_time"]
+                    keys_pressed.update(saved_state["keys_pressed"])
+                    collected_items = saved_state["collected_items"]
+                    combo_requirements = saved_state["combo_requirements"]
 
     def on_key_release(event):
         if event.keysym == "Left":
@@ -312,6 +335,7 @@ def show_final_score(root, player_name, score, level_selection_screen):
         root,
         text="Show Current Scoreboard",
         font=("Helvetica", 16, "bold"),
+        bg="#6F4E37",
         fg="orange",
         command=lambda: scoreboard.display_scoreboard("level2", "assets/images/t_score.png")  # Pass the background image path
     )

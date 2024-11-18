@@ -367,6 +367,7 @@ def show_final_score(root, player_name, score, level_selection_screen):
         root,
         text="Show Current Scoreboard",
         font=("Helvetica", 16, "bold"),
+        bg="#001F3F",
         fg="green",
         command=lambda: scoreboard.display_scoreboard("level3", "assets/images/c_score.png")  # Pass the background image path
     )

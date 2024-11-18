@@ -32,7 +32,7 @@ def level1_game(root, level_selection_screen):
     # Create a tkinter Canvas to hold the pygame surface
     game_canvas = tk.Canvas(root, width=cfg.SCREENSIZE[0], height=cfg.SCREENSIZE[1])
     game_canvas.pack()
-    
+
     # Create a pygame Surface to render the game
     screen = pygame.Surface(cfg.SCREENSIZE)
     clock = pygame.time.Clock()
@@ -67,6 +67,9 @@ def level1_game(root, level_selection_screen):
     # Game state
     game_state = {"paused": False}
 
+    # Memento caretaker
+    caretaker = Caretaker()
+
     # Define functions to handle key events
     def on_key_press(event):
         if event.keysym == "Left":
@@ -75,6 +78,22 @@ def level1_game(root, level_selection_screen):
             keys_pressed["right"] = True
         elif event.keysym == "p":  # Pause game on 'p' key press
             game_state["paused"] = not game_state["paused"]
+            if game_state["paused"]:
+                caretaker.save_state(Memento({
+                    "player": player,
+                    "candies": candies,
+                    "score": score,
+                    "start_time": start_time,
+                    "keys_pressed": keys_pressed
+                }))
+            else:
+                saved_state = caretaker.load_state()
+                if saved_state:
+                    player.update(saved_state["player"])
+                    candies = saved_state["candies"]
+                    score = saved_state["score"]
+                    start_time = saved_state["start_time"]
+                    keys_pressed.update(saved_state["keys_pressed"])
 
     def on_key_release(event):
         if event.keysym == "Left":
@@ -205,7 +224,7 @@ def ask_player_name(root, score, level_select_screen, background_image):
 
     # Error label
     error_label = tk.Label(root, text="", font=("Helvetica", 12), fg="white", bg="purple")
-    error_label_window = canvas.create_text(400, 270, anchor="center", window=error_label)
+    error_label_window = canvas.create_window(400, 270, anchor="center", window=error_label)
 
     # Confirm button
     def confirm_button():
@@ -220,6 +239,7 @@ def ask_player_name(root, score, level_select_screen, background_image):
         bg="white", fg="orange", command=confirm_button
     )
     canvas.create_window(400, 330, anchor="center", window=confirm_button_widget)
+
 
 
 def show_final_score(root, player_name, score, level_selection_screen):
@@ -276,7 +296,7 @@ def show_final_score(root, player_name, score, level_selection_screen):
         return_label = tk.Label(
             root,
             image=return_icon,
-            bg="black",  # Match the canvas background to blend
+            bg="#001F3F",  # Match the canvas background to blend
             borderwidth=0  # Remove border for a cleaner look
         )
         return_label.image = return_icon  # Keep a reference to avoid garbage collection
