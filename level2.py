@@ -65,6 +65,8 @@ def level2_game(root, level_selection_screen):
 
     # Timer initialization
     start_time = time.time()
+    pause_start_time = 0  # Track when the pause begins
+    total_pause_time = 0  # Track total time spent paused
     candy_speed = cfg.CANDY_SPEED*2  # Set to original speed
 
     # Combo tracking
@@ -82,29 +84,35 @@ def level2_game(root, level_selection_screen):
 
     # Define functions to handle key events
     def on_key_press(event):
+        nonlocal pause_start_time, total_pause_time
         if event.keysym == "Left":
             keys_pressed["left"] = True
         elif event.keysym == "Right":
             keys_pressed["right"] = True
         elif event.keysym == "p":  # Pause game on 'p' key press
-            game_state["paused"] = not game_state["paused"]
-            if game_state["paused"]:
+            if not game_state["paused"]:  # Game is being paused
+                pause_start_time = time.time()  # Record pause start time
+                game_state["paused"] = True
                 caretaker.save_state(Memento({
                     "player": player,
                     "candies": candies,
                     "score": score,
                     "start_time": start_time,
+                    "total_pause_time": total_pause_time,
                     "keys_pressed": keys_pressed,
                     "collected_items": collected_items,
                     "combo_requirements": combo_requirements
                 }))
-            else:
+            else:  # Game is being unpaused
+                game_state["paused"] = False
+                total_pause_time += time.time() - pause_start_time  # Add the pause duration to total
                 saved_state = caretaker.load_state()
                 if saved_state:
                     player.update(saved_state["player"])
                     candies = saved_state["candies"]
                     score = saved_state["score"]
                     start_time = saved_state["start_time"]
+                    total_pause_time = saved_state["total_pause_time"]
                     keys_pressed.update(saved_state["keys_pressed"])
                     collected_items = saved_state["collected_items"]
                     combo_requirements = saved_state["combo_requirements"]
@@ -144,9 +152,10 @@ def level2_game(root, level_selection_screen):
         nonlocal running, score, candy_speed, collected_items
 
         if not game_state["paused"]:
-            # Check for time elapsed
-            elapsed_time = time.time() - start_time
-            remaining_time = cfg.GAME_DURATION - elapsed_time
+            # Calculate elapsed time excluding pause time
+            current_time = time.time()
+            actual_elapsed_time = current_time - start_time - total_pause_time
+            remaining_time = cfg.GAME_DURATION - actual_elapsed_time
 
             if remaining_time <= 0:
                 running = False  # End the game if time is up
@@ -170,7 +179,6 @@ def level2_game(root, level_selection_screen):
 
             # Move candies and check for collision with player
             for c in list(candies):
-
                 # random candy and turkey move
                 if c[2] == "turkey":
                     speed_x = random.choice([-30,-20,-10, 0, 10, 20, 30])
@@ -183,7 +191,7 @@ def level2_game(root, level_selection_screen):
                     collected_items[c[2]] += 1  # Update collected count for the object type
                     item_catch_sound.play()  # Play item catch sound
 
-                   # Check for combo completion
+                    # Check for combo completion
                     if check_combo_completion():
                         combo_score = calculate_combo_score()  # Calculate dynamic score for the completed set
                         score += combo_score  # Add calculated score

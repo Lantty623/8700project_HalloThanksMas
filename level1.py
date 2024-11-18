@@ -60,6 +60,8 @@ def level1_game(root, level_selection_screen):
 
     # Timer initialization
     start_time = time.time()
+    pause_start = 0  # Track when pause starts
+    total_pause_time = 0  # Track total time spent paused
 
     # Key state tracking for movement
     keys_pressed = {"left": False, "right": False}
@@ -72,6 +74,7 @@ def level1_game(root, level_selection_screen):
 
     # Define functions to handle key events
     def on_key_press(event):
+        nonlocal pause_start, total_pause_time
         if event.keysym == "Left":
             keys_pressed["left"] = True
         elif event.keysym == "Right":
@@ -79,20 +82,23 @@ def level1_game(root, level_selection_screen):
         elif event.keysym == "p":  # Pause game on 'p' key press
             game_state["paused"] = not game_state["paused"]
             if game_state["paused"]:
+                pause_start = time.time()  # Record when pause started
                 caretaker.save_state(Memento({
                     "player": player,
                     "candies": candies,
                     "score": score,
-                    "start_time": start_time,
+                    "total_pause_time": total_pause_time,
                     "keys_pressed": keys_pressed
                 }))
             else:
+                # Calculate additional pause time when unpausing
+                if pause_start > 0:
+                    total_pause_time += time.time() - pause_start
                 saved_state = caretaker.load_state()
                 if saved_state:
                     player.update(saved_state["player"])
                     candies = saved_state["candies"]
                     score = saved_state["score"]
-                    start_time = saved_state["start_time"]
                     keys_pressed.update(saved_state["keys_pressed"])
 
     def on_key_release(event):
@@ -110,8 +116,8 @@ def level1_game(root, level_selection_screen):
         nonlocal running, score
 
         if not game_state["paused"]:
-            # Check for time elapsed
-            elapsed_time = time.time() - start_time
+            # Calculate time elapsed, accounting for paused time
+            elapsed_time = time.time() - start_time - total_pause_time
             remaining_time = cfg.GAME_DURATION - elapsed_time
 
             if remaining_time <= 0:
@@ -176,7 +182,6 @@ def level1_game(root, level_selection_screen):
         else:
             pygame.mixer.music.stop()  # Stop background music when the game ends
             pygame.quit()
-            # Pass the image path instead of the Pygame surface
             ask_player_name(root, score, level_selection_screen, "assets/images/halloween_background.png")
 
     # Run the game loop
