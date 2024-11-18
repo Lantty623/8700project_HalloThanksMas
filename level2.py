@@ -84,38 +84,49 @@ def level2_game(root, level_selection_screen):
 
     # Define functions to handle key events
     def on_key_press(event):
-        nonlocal pause_start_time, total_pause_time
+        nonlocal pause_start_time, total_pause_time, candies, score, start_time, collected_items, combo_requirements, player
         if event.keysym == "Left":
             keys_pressed["left"] = True
         elif event.keysym == "Right":
             keys_pressed["right"] = True
-        elif event.keysym == "p":  # Pause game on 'p' key press
-            if not game_state["paused"]:  # Game is being paused
-                pause_start_time = time.time()  # Record pause start time
+        elif event.keysym == "p":
+            if not game_state["paused"]:
+                pause_start_time = time.time()
                 game_state["paused"] = True
                 caretaker.save_state(Memento({
-                    "player": player,
-                    "candies": candies,
+                    "player_pos": player.topleft,
+                    "candies": [(c[0].topleft, c[2]) for c in candies],
                     "score": score,
                     "start_time": start_time,
                     "total_pause_time": total_pause_time,
+                    "pause_start_time": pause_start_time,
                     "keys_pressed": keys_pressed,
                     "collected_items": collected_items,
                     "combo_requirements": combo_requirements
                 }))
-            else:  # Game is being unpaused
+            else:
                 game_state["paused"] = False
-                total_pause_time += time.time() - pause_start_time  # Add the pause duration to total
                 saved_state = caretaker.load_state()
                 if saved_state:
-                    player.update(saved_state["player"])
-                    candies = saved_state["candies"]
+                    player.topleft = saved_state["player_pos"]
+                    candies = [(pygame.Rect(pos, cfg.CANDY_SIZE), get_candy_image(candy_type), candy_type) for
+                               pos, candy_type in saved_state["candies"]]
                     score = saved_state["score"]
                     start_time = saved_state["start_time"]
                     total_pause_time = saved_state["total_pause_time"]
+                    pause_start_time = saved_state["pause_start_time"]
+                    total_pause_time += time.time() - pause_start_time
                     keys_pressed.update(saved_state["keys_pressed"])
                     collected_items = saved_state["collected_items"]
                     combo_requirements = saved_state["combo_requirements"]
+    def get_candy_image(candy_type):
+        if candy_type == "turkey":
+            return turkey_img
+        elif candy_type == "pie":
+            return pie_img
+        elif candy_type == "mash":
+            return mash_img
+        return None
 
     def on_key_release(event):
         if event.keysym == "Left":
