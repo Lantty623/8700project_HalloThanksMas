@@ -205,7 +205,7 @@ def ask_player_name(root, score, level_select_screen, background_image):
 
     # Error label
     error_label = tk.Label(root, text="", font=("Helvetica", 12), fg="white", bg="purple")
-    error_label_window = canvas.create_window(400, 270, anchor="center", window=error_label)
+    error_label_window = canvas.create_text(400, 270, anchor="center", window=error_label)
 
     # Confirm button
     def confirm_button():

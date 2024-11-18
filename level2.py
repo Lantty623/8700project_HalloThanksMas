@@ -327,7 +327,7 @@ def show_final_score(root, player_name, score, level_selection_screen):
         return_label = tk.Label(
             root,
             image=return_icon,
-            bg="brown",  # Match the canvas background to blend
+            bg="#6F4E37",  # Match the canvas background to blend
             borderwidth=0  # Remove border for a cleaner look
         )
         return_label.image = return_icon  # Keep a reference to avoid garbage collection

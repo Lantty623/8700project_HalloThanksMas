@@ -124,6 +124,10 @@
     "level2": [
         {
             "name": "Player1",
+            "score": 2300
+        },
+        {
+            "name": "Player1",
             "score": 2000
         },
         {
@@ -191,6 +195,10 @@
         {
             "name": "Player1",
             "score": 750
+        },
+        {
+            "name": "Player1",
+            "score": 650
         },
         {
             "name": "Player1",
