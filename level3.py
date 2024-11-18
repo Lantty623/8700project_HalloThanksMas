@@ -88,9 +88,13 @@ def level3_game(root, level_selection_screen):
                 if state:
                     restore_state(state)
                 game_state["paused"] = False
+                # Adjust start_time to account for the paused duration
+                nonlocal start_time
+                start_time += time.time() - game_state["pause_time"]
             else:
                 caretaker.save_state(Memento(save_state()))
                 game_state["paused"] = True
+                game_state["pause_time"] = time.time()
 
     def on_key_release(event):
         if event.keysym == "Left":
