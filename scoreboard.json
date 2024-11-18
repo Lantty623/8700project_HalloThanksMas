@@ -18,6 +18,10 @@
         },
         {
             "name": "Player1",
+            "score": 1400
+        },
+        {
+            "name": "Player1",
             "score": 1050
         },
         {
@@ -62,6 +66,10 @@
         },
         {
             "name": "player1",
+            "score": 200
+        },
+        {
+            "name": "Player1",
             "score": 200
         },
         {
@@ -116,6 +124,10 @@
     "level2": [
         {
             "name": "Player1",
+            "score": 2000
+        },
+        {
+            "name": "Player1",
             "score": 1550
         },
         {
@@ -125,6 +137,10 @@
         {
             "name": "Player1",
             "score": 1200
+        },
+        {
+            "name": "Player1",
+            "score": 1100
         },
         {
             "name": "Player1",
@@ -160,6 +176,10 @@
         }
     ],
     "level3": [
+        {
+            "name": "Player1",
+            "score": 1200
+        },
         {
             "name": "Player1",
             "score": 1000

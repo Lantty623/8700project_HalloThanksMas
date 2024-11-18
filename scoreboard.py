@@ -38,22 +38,22 @@ def display_scoreboard(level, background_image_path=None):
     root.title(f"{level.capitalize()} Scoreboard")
     root.geometry("400x600")
 
+    # Set up the canvas
+    canvas = tk.Canvas(root, width=400, height=600)
+    canvas.pack(fill="both", expand=True)
+
     # Set up the background if the image path is provided
     if background_image_path:
         background_image = Image.open(background_image_path)
         background_image = background_image.resize((400, 600), Image.LANCZOS)
         background_photo = ImageTk.PhotoImage(background_image)
 
-        # Create a canvas for the background
-        canvas = tk.Canvas(root, width=400, height=600)
-        canvas.pack(fill="both", expand=True)
         canvas.create_image(0, 0, anchor="nw", image=background_photo)
 
         # Keep a reference to avoid garbage collection
         canvas.background_photo = background_photo
     else:
-        canvas = tk.Canvas(root, width=400, height=600, bg="white")
-        canvas.pack(fill="both", expand=True)
+        canvas.configure(bg="white")
 
     # Titles for levels
     titles = {
@@ -61,25 +61,22 @@ def display_scoreboard(level, background_image_path=None):
         "level2": "Harvesting Festival",
         "level3": "Santa's Present",
     }
-    title_label = tk.Label(
-        canvas,
+    # Add the title label to the canvas
+    canvas.create_text(
+        200, 50,
         text=titles.get(level, "Scoreboard"),
         font=("Helvetica", 20, "bold"),
-        bg="black",
-        fg="white",
+        fill="white" if background_image_path else "black"
     )
-    canvas.create_window(200, 50, anchor="center", window=title_label)
 
     # Display the scores
     for i, entry in enumerate(scores[:10], 1):  # Show top 10 scores
-        score_label = tk.Label(
-            canvas,
+        canvas.create_text(
+            200, 100 + i * 30,
             text=f"{i}. {entry['name']} - {entry['score']}",
             font=("Helvetica", 16),
-            bg="black",
-            fg="white",
+            fill="white" if background_image_path else "black"
         )
-        canvas.create_window(200, 100 + i * 30, anchor="center", window=score_label)
 
     # Add a close button
     close_button = tk.Button(
@@ -93,4 +90,3 @@ def display_scoreboard(level, background_image_path=None):
     canvas.create_window(200, 550, anchor="center", window=close_button)
 
     root.mainloop()
-
