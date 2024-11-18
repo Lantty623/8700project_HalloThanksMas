@@ -74,7 +74,7 @@ def level1_game(root, level_selection_screen):
 
     # Define functions to handle key events
     def on_key_press(event):
-        nonlocal pause_start, total_pause_time
+        nonlocal pause_start, total_pause_time, candies, score
         if event.keysym == "Left":
             keys_pressed["left"] = True
         elif event.keysym == "Right":
