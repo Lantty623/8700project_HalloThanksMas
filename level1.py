@@ -12,7 +12,7 @@ def level1_game(root, level_selection_screen):
     for widget in root.winfo_children():
         widget.destroy()
 
-    # Initialize Pygame and Pygame Mixer for sound
+    # Init Pygame
     pygame.init()
     pygame.mixer.init()
 

@@ -12,26 +12,27 @@ def level3_game(root, level_selection_screen):
     for widget in root.winfo_children():
         widget.destroy()
 
-    # Initialize Pygame
+    # Init Pygame
     pygame.init()
     pygame.mixer.init()  # Initialize mixer for sound effects
 
-    # Load sound files
-    pygame.mixer.music.load("assets/sounds/christmas_background.mp3")  # Background music file
+    # Load sound
+    pygame.mixer.music.load("assets/sounds/christmas_background.mp3")
     present_sound = pygame.mixer.Sound("assets/sounds/present_sound.mp3")  # Sound effect for catching a present
     snowball_sound = pygame.mixer.Sound("assets/sounds/snowball_sound.mp3")  # Sound effect for catching a snowball
     freeze_sound = pygame.mixer.Sound("assets/sounds/freeze_sound.mp3")  # Sound effect for catching a snowman
 
     # Start background music
-    pygame.mixer.music.play(loops=-1)  # Loop the music indefinitely
+    pygame.mixer.music.play(loops=-1)
 
-    # Create a tkinter Canvas to hold the pygame surface
+    # tkinter Canvas to hold the pygame surface
     game_canvas = tk.Canvas(root, width=cfg.SCREENSIZE[0], height=cfg.SCREENSIZE[1])
     game_canvas.pack()
 
-    # Create a pygame Surface to render the game
+    # pygame Surface to render the game
     screen = pygame.Surface(cfg.SCREENSIZE)
     clock = pygame.time.Clock()
+
 
     # Load images
     background_img = pygame.image.load("assets/images/christmas_background.png")
@@ -59,15 +60,15 @@ def level3_game(root, level_selection_screen):
     score = 0
     font = pygame.font.SysFont(None, 36)
 
-    # Timer and speed variables
+    # Timer init
     start_time = time.time()
     candy_speed = cfg.CANDY_SPEED * 2
-    freeze_end_time = 0  # Initialize freeze time to zero
+    freeze_end_time = 0
     freeze_warning_popup = None  # Popup for freeze warning
     freeze_warning_shown = False  # Track if warning has been shown for current freeze
     snow_height = 0  # Initial height of the snow accumulation
 
-    # Key state tracking for movement
+    # Key state
     keys_pressed = {"left": False, "right": False}
 
     # Game state
@@ -82,7 +83,9 @@ def level3_game(root, level_selection_screen):
             keys_pressed["left"] = True
         elif event.keysym == "Right":
             keys_pressed["right"] = True
-        elif event.keysym == "p":  # Pause game on 'p' key press
+
+        # Pause game on 'p' key press
+        elif event.keysym == "p":
             if game_state["paused"]:
                 state = caretaker.load_state()
                 if state:
@@ -106,7 +109,7 @@ def level3_game(root, level_selection_screen):
     root.bind("<KeyPress>", on_key_press)
     root.bind("<KeyRelease>", on_key_release)
 
-    # Function to save the current game state
+    # save the current game state
     def save_state():
         return {
             "candies": candies.copy(),
@@ -117,7 +120,7 @@ def level3_game(root, level_selection_screen):
             "keys_pressed": keys_pressed.copy()
         }
 
-    # Function to restore the game state from a memento
+    # restore the game state from a memento
     def restore_state(state):
         nonlocal candies, score, candy_speed, freeze_end_time, snow_height, keys_pressed
         candies = state["candies"]
@@ -142,7 +145,7 @@ def level3_game(root, level_selection_screen):
         freeze_warning_popup.grab_set()
         freeze_warning_popup.lift()
         freeze_warning_popup.focus_force()
-        freeze_warning_shown = True  # Set flag to indicate warning has been shown
+        freeze_warning_shown = True
 
         label = tk.Label(freeze_warning_popup, font=("Arial", 14), fg="red")
         label.pack(expand=True)
@@ -171,7 +174,7 @@ def level3_game(root, level_selection_screen):
             remaining_time = cfg.GAME_DURATION - elapsed_time
 
             if remaining_time <= 0:
-                running = False  # End the game if time is up
+                running = False  # End game if time is up
 
             # Handle player movement based on key presses, only if not frozen
             if time.time() > freeze_end_time:
@@ -212,19 +215,22 @@ def level3_game(root, level_selection_screen):
                     speed_x = random.choice([-5, 0, 5])
 
                 candy[0].move_ip(speed_x, candy_speed)
-                if candy[0].colliderect(player):  # Catch item
+
+
+                # Catch item
+                if candy[0].colliderect(player):
                     candies.remove(candy)
                     if candy[1] == "snowball":
                         score -= 50  # Deduct points for catching a snowball
-                        snowball_sound.play()  # Play snowball sound effect
+                        snowball_sound.play()
                     elif candy[1] == "snowman":
                         freeze_end_time = time.time() + 5  # Freeze player for 5 seconds
                         freeze_sound.play()  # Play freeze sound effect
                         show_freeze_warning()  # Show freeze warning immediately
                     else:
                         score += 100  # Add points for catching a present
-                        present_sound.play()  # Play present sound effect
-                elif candy[0].top > cfg.SCREENSIZE[1]:  # Out of screen
+                        present_sound.play()
+                elif candy[0].top > cfg.SCREENSIZE[1]:
                     candies.remove(candy)
 
             # Gradually increase candy speed
@@ -260,7 +266,7 @@ def level3_game(root, level_selection_screen):
         game_image = Image.frombytes("RGB", cfg.SCREENSIZE, game_surface)
         game_photo = ImageTk.PhotoImage(game_image)
         game_canvas.create_image(0, 0, anchor="nw", image=game_photo)
-        game_canvas.image = game_photo  # Keep a reference to avoid garbage collection
+        game_canvas.image = game_photo
 
         if running:
             root.after(16, game_loop)  # Schedule the next game loop iteration
@@ -280,17 +286,17 @@ def ask_player_name(root, score, level_select_screen, background_image):
     for widget in root.winfo_children():
         widget.destroy()
 
-    # Load the background image
+
     background_image = Image.open(background_image)
     background_image = background_image.resize((800, 600), Image.LANCZOS)
     background_photo = ImageTk.PhotoImage(background_image)
 
-    # Create a canvas to hold the background
+    # canvas to hold the background
     canvas = tk.Canvas(root, width=800, height=600)
     canvas.pack(fill="both", expand=True)
     canvas.create_image(0, 0, anchor="nw", image=background_photo)
 
-    # Keep a reference to avoid garbage collection
+
     canvas.image = background_photo
 
     # Display final score message
@@ -343,21 +349,21 @@ def show_final_score(root, player_name, score, level_selection_screen):
     background_image = background_image.resize((800, 600), Image.LANCZOS)
     background_photo = ImageTk.PhotoImage(background_image)
 
-    # Create a canvas to hold the background
+
+
     canvas = tk.Canvas(root, width=800, height=600)
     canvas.pack(fill="both", expand=True)
     canvas.create_image(0, 0, anchor="nw", image=background_photo)
 
-    # Keep a reference to avoid garbage collection
+
     canvas.image = background_photo
 
-    # Display final score message
+    # Display final score and name
     canvas.create_text(
         400, 100, text=f"Game Over! Your Score: {score}",
         font=("Helvetica", 24, "bold"), fill="green"
     )
 
-    # Display the player's name
     canvas.create_text(
         400, 150, text=f"Congratulations, {player_name}!",
         font=("Helvetica", 20, "italic"), fill="red"
@@ -377,7 +383,7 @@ def show_final_score(root, player_name, score, level_selection_screen):
     )
     canvas.create_window(400, 250, anchor="center", window=show_scoreboard_button)
 
-    # Add a return button to go back to the level selection screen
+    # Return button
     try:
         return_img = Image.open("assets/images/return_icon.png")
         return_img = return_img.resize((80, 80), Image.LANCZOS)
@@ -394,7 +400,7 @@ def show_final_score(root, player_name, score, level_selection_screen):
         return_label_window = canvas.create_window(
             400, 350, anchor="center", window=return_label
         )
-        # Bind the click event to return to level selection
+
         return_label.bind("<Button-1>", lambda e: level_selection_screen())
     except Exception as e:
         print("Return icon not found:", e)
