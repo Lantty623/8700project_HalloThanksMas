@@ -1,5 +1,5 @@
 class GameDirection:
-    """Game direction instance template """
+
     def __init__(self, title, point_guide, objective, control, title_color, images):
         self.title = title
         self.point_guide = point_guide
@@ -9,7 +9,7 @@ class GameDirection:
         self.images = images
 
     def get_directions(self):
-        """It will return a formatted string of directions."""
+
         return (
             f"{self.title}\n\n"
             f"Point Guide:\n{self.point_guide}\n\n"
@@ -64,12 +64,11 @@ class ChristmasDirection(GameDirection):
             images=["assets/images/present.png", "assets/images/snowball.png", "assets/images/snowman.png"]
         )
 
-
+# Factory method for creating game directions.
 class GameDirectionFactory:
-    """Factory method for creating game directions."""
+
     @staticmethod
     def create_direction(level_name):
-        """It will return the necessary game direction depending on what level is provided"""
         if level_name == "Trick-or-treating":
             return HalloweenDirection()
         elif level_name == "Harvesting Festival":

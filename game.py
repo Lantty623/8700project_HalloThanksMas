@@ -6,7 +6,7 @@ from level2 import level2_game
 from level3 import level3_game
 from direction import GameDirectionFactory 
 
-# Decorator for text modifying
+# Decorator for text modifying(Decorator pattern)
 def style_text(underline=True, color="black"):
     def decorator(func):
         def wrapper(*args, **kwargs):
@@ -16,16 +16,16 @@ def style_text(underline=True, color="black"):
                 styled_font = font.Font(
                     family=current_font.actual("family"),
                     size=current_font.actual("size"),
-                    weight="bold",  # Bold
-                    slant="italic",  # Italicize
-                    underline=underline  # Underline
+                    weight="bold",
+                    slant="italic",
+                    underline=underline
                 )
                 widget.configure(font=styled_font, fg=color)  
             return widget
         return wrapper
     return decorator
 
-# Singleton to ensure only one game instance
+# Singleton to ensure only one game instance(Singleton pattern)
 class SingletonTkinter:
     _instance = None
 
