@@ -17,11 +17,10 @@ def level2_game(root, level_selection_screen):
     pygame.mixer.init()  # Initialize the mixer for sound
 
     # Load sounds
-    item_catch_sound = pygame.mixer.Sound("assets/sounds/item_catch.mp3")  # Sound when item is caught
-    set_complete_sound = pygame.mixer.Sound("assets/sounds/set_complete.mp3")  # Sound when set is completed
-    pygame.mixer.music.load("assets/sounds/thanksgiving_background.mp3")  # Background music
-    pygame.mixer.music.play(-1)  # Loop the background music indefinitely
-
+    item_catch_sound = pygame.mixer.Sound("assets/sounds/item_catch.mp3")
+    set_complete_sound = pygame.mixer.Sound("assets/sounds/set_complete.mp3")
+    pygame.mixer.music.load("assets/sounds/thanksgiving_background.mp3")
+    pygame.mixer.music.play(-1)
     # Create a tkinter Canvas to hold the pygame surface
     game_canvas = tk.Canvas(root, width=cfg.SCREENSIZE[0], height=cfg.SCREENSIZE[1])
     game_canvas.pack()
@@ -65,12 +64,12 @@ def level2_game(root, level_selection_screen):
 
     # Timer initialization
     start_time = time.time()
-    pause_start_time = 0  # Track when the pause begins
-    total_pause_time = 0  # Track total time spent paused
-    candy_speed = cfg.CANDY_SPEED*2  # Set to original speed
+    pause_start_time = 0
+    total_pause_time = 0
+    candy_speed = cfg.CANDY_SPEED*2
 
     # Combo tracking
-    combo_requirements = {"turkey": 1, "pie": 2, "mash": 1}  # Initial requirement
+    combo_requirements = {"turkey": 1, "pie": 2, "mash": 1}
     collected_items = {"turkey": 0, "pie": 0, "mash": 0}
 
     # Key state tracking for movement
@@ -84,38 +83,49 @@ def level2_game(root, level_selection_screen):
 
     # Define functions to handle key events
     def on_key_press(event):
-        nonlocal pause_start_time, total_pause_time
+        nonlocal pause_start_time, total_pause_time, candies, score, start_time, collected_items, combo_requirements, player
         if event.keysym == "Left":
             keys_pressed["left"] = True
         elif event.keysym == "Right":
             keys_pressed["right"] = True
-        elif event.keysym == "p":  # Pause game on 'p' key press
-            if not game_state["paused"]:  # Game is being paused
-                pause_start_time = time.time()  # Record pause start time
+        elif event.keysym == "p":
+            if not game_state["paused"]:
+                pause_start_time = time.time()
                 game_state["paused"] = True
                 caretaker.save_state(Memento({
-                    "player": player,
-                    "candies": candies,
+                    "player_pos": player.topleft,
+                    "candies": [(c[0].topleft, c[2]) for c in candies],
                     "score": score,
                     "start_time": start_time,
                     "total_pause_time": total_pause_time,
+                    "pause_start_time": pause_start_time,
                     "keys_pressed": keys_pressed,
                     "collected_items": collected_items,
                     "combo_requirements": combo_requirements
                 }))
-            else:  # Game is being unpaused
+            else:
                 game_state["paused"] = False
-                total_pause_time += time.time() - pause_start_time  # Add the pause duration to total
                 saved_state = caretaker.load_state()
                 if saved_state:
-                    player.update(saved_state["player"])
-                    candies = saved_state["candies"]
+                    player.topleft = saved_state["player_pos"]
+                    candies = [(pygame.Rect(pos, cfg.CANDY_SIZE), get_candy_image(candy_type), candy_type) for
+                               pos, candy_type in saved_state["candies"]]
                     score = saved_state["score"]
                     start_time = saved_state["start_time"]
                     total_pause_time = saved_state["total_pause_time"]
+                    pause_start_time = saved_state["pause_start_time"]
+                    total_pause_time += time.time() - pause_start_time
                     keys_pressed.update(saved_state["keys_pressed"])
                     collected_items = saved_state["collected_items"]
                     combo_requirements = saved_state["combo_requirements"]
+    def get_candy_image(candy_type):
+        if candy_type == "turkey":
+            return turkey_img
+        elif candy_type == "pie":
+            return pie_img
+        elif candy_type == "mash":
+            return mash_img
+        return None
 
     def on_key_release(event):
         if event.keysym == "Left":
@@ -172,10 +182,10 @@ def level2_game(root, level_selection_screen):
             # Randomly drop a new object
             if random.randint(1, 15) == 1:
                 candy_x = random.randint(0, cfg.SCREENSIZE[0] - cfg.CANDY_SIZE[0])
-                candy_type = random.choice(["turkey", "pie", "mash"])  # Randomly select the type
+                candy_type = random.choice(["turkey", "pie", "mash"])
                 candy_img = turkey_img if candy_type == "turkey" else pie_img if candy_type == "pie" else mash_img
                 new_candy = pygame.Rect(candy_x, 0, *cfg.CANDY_SIZE)
-                candies.append((new_candy, candy_img, candy_type))  # Append as (position, image, type)
+                candies.append((new_candy, candy_img, candy_type))
 
             # Move candies and check for collision with player
             for c in list(candies):
@@ -186,20 +196,20 @@ def level2_game(root, level_selection_screen):
                     speed_x = random.choice([-5, 0, 5])
 
                 c[0].move_ip(speed_x, candy_speed)
-                if c[0].colliderect(player):  # Catch object
+                if c[0].colliderect(player):
                     candies.remove(c)
-                    collected_items[c[2]] += 1  # Update collected count for the object type
-                    item_catch_sound.play()  # Play item catch sound
+                    collected_items[c[2]] += 1
+                    item_catch_sound.play()
 
                     # Check for combo completion
                     if check_combo_completion():
-                        combo_score = calculate_combo_score()  # Calculate dynamic score for the completed set
-                        score += combo_score  # Add calculated score
-                        set_complete_sound.play()  # Play set completion sound
-                        collected_items = {key: 0 for key in collected_items}  # Reset collection
-                        refresh_combo_requirements()  # Set a new combo requirement
+                        combo_score = calculate_combo_score()
+                        score += combo_score
+                        set_complete_sound.play()
+                        collected_items = {key: 0 for key in collected_items}
+                        refresh_combo_requirements()
 
-                elif c[0].top > cfg.SCREENSIZE[1]:  # Out of screen
+                elif c[0].top > cfg.SCREENSIZE[1]:
                     candies.remove(c)
 
             # Draw everything on the pygame surface
@@ -208,7 +218,7 @@ def level2_game(root, level_selection_screen):
 
             # Display falling objects
             for c in candies:
-                screen.blit(c[1], c[0].topleft)  # Use the image stored in the tuple
+                screen.blit(c[1], c[0].topleft)
 
             # Display score and remaining time
             score_text = font.render(f"Score: {score}", True, (255, 255, 255))
@@ -217,28 +227,28 @@ def level2_game(root, level_selection_screen):
             screen.blit(time_text, (10, 50))
 
             # Display required set images and counters
-            item_x = 10  # Starting x position for displaying the required items
+            item_x = 10
             for item, required_count in combo_requirements.items():
                 item_img = turkey_img if item == "turkey" else pie_img if item == "pie" else mash_img
-                screen.blit(item_img, (item_x, 100))  # Display item image
+                screen.blit(item_img, (item_x, 100))
                 required_text = font.render(f"{collected_items[item]}/{required_count}", True, (255, 255, 255))
-                screen.blit(required_text, (item_x, 130))  # Display collected/required count below the image
+                screen.blit(required_text, (item_x, 130))
 
                 # Display checkmark if item count is met or exceeded
                 if collected_items[item] >= required_count:
-                    screen.blit(checkmark_img, (item_x + 35, 105))  # Position the checkmark to the right of the image
+                    screen.blit(checkmark_img, (item_x + 35, 105))
 
-                item_x += 50  # Move x position for the next item
+                item_x += 50
 
         # Render the pygame surface onto the tkinter canvas
         game_surface = pygame.image.tostring(screen, "RGB")
         game_image = Image.frombytes("RGB", cfg.SCREENSIZE, game_surface)
         game_photo = ImageTk.PhotoImage(game_image)
         game_canvas.create_image(0, 0, anchor="nw", image=game_photo)
-        game_canvas.image = game_photo  # Keep a reference to avoid garbage collection
+        game_canvas.image = game_photo
 
         if running:
-            root.after(30, game_loop)  # Schedule the next game loop iteration
+            root.after(30, game_loop)
         else:
             pygame.quit()
             ask_player_name(root, score, level_selection_screen,"assets/images/thanksgiving_background.png")
@@ -261,8 +271,6 @@ def ask_player_name(root, score, level_select_screen, background_image):
     canvas = tk.Canvas(root, width=800, height=600)
     canvas.pack(fill="both", expand=True)
     canvas.create_image(0, 0, anchor="nw", image=background_photo)
-
-    # Keep a reference to avoid garbage collection
     canvas.image = background_photo
 
     # Display final score message
@@ -359,14 +367,13 @@ def show_final_score(root, player_name, score, level_selection_screen):
         return_label = tk.Label(
             root,
             image=return_icon,
-            bg="#6F4E37",  # Match the canvas background to blend
-            borderwidth=0  # Remove border for a cleaner look
+            bg="#6F4E37",
+            borderwidth=0
         )
-        return_label.image = return_icon  # Keep a reference to avoid garbage collection
+        return_label.image = return_icon
         return_label_window = canvas.create_window(
             400, 350, anchor="center", window=return_label
         )
-        # Bind the click event to return to level selection
         return_label.bind("<Button-1>", lambda e: level_selection_screen())
     except Exception as e:
         print("Return icon not found:", e)
