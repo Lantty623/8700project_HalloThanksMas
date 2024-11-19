@@ -6,6 +6,7 @@ from level2 import level2_game
 from level3 import level3_game
 from direction import GameDirectionFactory 
 
+
 # Decorator for text modifying(Decorator pattern)
 def style_text(underline=True, color="black"):
     def decorator(func):
@@ -24,6 +25,7 @@ def style_text(underline=True, color="black"):
             return widget
         return wrapper
     return decorator
+
 
 # Singleton to ensure only one game instance(Singleton pattern)
 class SingletonTkinter:
@@ -53,7 +55,7 @@ flash_job_id = None
 color_index = 0
 colors = ["orange", "yellow", "green"]
 
-# Function to start the game from the start screen
+
 def start_game(event=None):
     global flashing
     flashing = False
@@ -71,6 +73,8 @@ def flash_text():
         canvas.itemconfig(instruction_text, fill=new_color)
         color_index = (color_index + 1) % len(colors)
         flash_job_id = root.after(500, flash_text)
+
+
 
 # --- Level Selection Screen ---
 # Player is able to pick what level they want here
@@ -155,6 +159,7 @@ def show_direction_screen(level):
         title_label = create_title_label()
         title_label.pack(pady=(10, 20))
 
+
         # Point Guide Section
         point_guide_frame = tk.Frame(direction_screen, padx=10, pady=10)
         point_guide_frame.pack(fill="x", anchor="w")
@@ -193,7 +198,7 @@ def show_direction_screen(level):
         objective_text = tk.Label(direction_screen, text=direction_instance.objective, font=("Helvetica", 16), anchor="w", justify="left", wraplength=750)
         objective_text.pack(anchor="w", padx=20)
 
-        # The control that the player will be using
+
         control_label = create_section_label("Control:")
         control_label.pack(anchor="w", pady=(20, 5), padx=10)
 
