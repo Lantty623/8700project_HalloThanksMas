@@ -1,5 +1,5 @@
 import pickle
-
+#Mememto pattern is used to store the state of an object and restore it later.
 class Memento:
     def __init__(self, state):
         self.state = state
